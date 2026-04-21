@@ -6,6 +6,8 @@ const envSchema = z.object({
   AUTH_URL: z.string().url().optional(),
   NEXTAUTH_URL: z.string().url().optional(),
   APP_PUBLIC_URL: z.string().url().optional(),
+  VERCEL_PROJECT_PRODUCTION_URL: z.string().optional(),
+  VERCEL_URL: z.string().optional(),
   REDIS_URL: z.string().default("redis://localhost:6379"),
   KAKAO_REST_API_KEY: z.string().optional(),
   NEXT_PUBLIC_KAKAO_MAP_APP_KEY: z.string().optional(),
@@ -18,7 +20,20 @@ const envSchema = z.object({
 
 const parsed = envSchema.parse(process.env);
 
+function toHttpsUrl(host?: string) {
+  if (!host) {
+    return undefined;
+  }
+
+  return `https://${host}`;
+}
+
 export const env = {
   ...parsed,
-  APP_PUBLIC_URL: parsed.APP_PUBLIC_URL ?? parsed.NEXTAUTH_URL ?? parsed.AUTH_URL
+  APP_PUBLIC_URL:
+    parsed.APP_PUBLIC_URL ??
+    parsed.NEXTAUTH_URL ??
+    parsed.AUTH_URL ??
+    toHttpsUrl(parsed.VERCEL_PROJECT_PRODUCTION_URL) ??
+    toHttpsUrl(parsed.VERCEL_URL)
 };

@@ -1,0 +1,190 @@
+"use client";
+
+import Image from "next/image";
+import {
+  invitationTemplates,
+  type InvitationConfig,
+  type InvitationGalleryItem
+} from "@/lib/invitation/types";
+
+type InvitationLivePreviewProps = {
+  title: string;
+  groomName: string;
+  brideName: string;
+  greeting: string;
+  venueName: string;
+  eventDate: string;
+  gallery: InvitationGalleryItem[];
+  config: InvitationConfig;
+};
+
+export function InvitationLivePreview({
+  title,
+  groomName,
+  brideName,
+  greeting,
+  venueName,
+  eventDate,
+  gallery,
+  config
+}: InvitationLivePreviewProps) {
+  const template =
+    invitationTemplates.find((item) => item.id === config.templateId) ?? invitationTemplates[0];
+  const previewGallery = gallery.slice(0, 3);
+
+  return (
+    <div className="rounded-md border border-ink/10 bg-white p-4 shadow-sm">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-rose">
+            Live Preview
+          </p>
+          <p className="mt-1 text-sm text-ink/55">선택한 템플릿과 폰트가 바로 반영됩니다.</p>
+        </div>
+        <span className={`rounded-full px-3 py-1 text-xs font-medium text-ink ${template.accentClass}`}>
+          {template.name}
+        </span>
+      </div>
+
+      <div
+        className={`mx-auto max-w-[320px] overflow-hidden rounded-md border border-black/5 bg-white ${getFontClass(
+          config.design.fontPreset
+        )}`}
+      >
+        <div className={`px-5 py-6 text-center ${template.accentClass}`}>
+          <p className="text-[11px] uppercase tracking-[0.28em] text-rose">
+            {config.copy.heroEyebrow}
+          </p>
+          <h3 className="mt-4 text-2xl font-semibold text-ink">
+            {groomName || "신랑"}
+            <span className="mx-2 text-rose">&</span>
+            {brideName || "신부"}
+          </h3>
+          <p className="mt-3 text-xs text-ink/60">{formatPreviewDate(eventDate)}</p>
+        </div>
+
+        {config.sectionOrder.map((sectionId) => {
+          if (sectionId === "intro") {
+            return (
+              <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
+                <h4 className="text-center text-lg font-semibold text-ink">
+                  {title || "청첩장 제목"}
+                </h4>
+                <p className="mt-3 whitespace-pre-wrap text-center text-sm leading-6 text-ink/65">
+                  {greeting || config.copy.heroDescription}
+                </p>
+              </section>
+            );
+          }
+
+          if (sectionId === "gallery" && previewGallery.length) {
+            return (
+              <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
+                <h4 className="text-center text-lg font-semibold text-ink">
+                  {config.copy.galleryTitle}
+                </h4>
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  {previewGallery.map((item) => (
+                    <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-porcelain" key={item.id}>
+                      <Image
+                        alt={item.alt ?? item.fileName}
+                        className="object-cover"
+                        fill
+                        src={item.src}
+                        unoptimized
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            );
+          }
+
+          if (sectionId === "location") {
+            return (
+              <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
+                <h4 className="text-center text-lg font-semibold text-ink">
+                  {config.copy.locationTitle}
+                </h4>
+                <div className="mt-4 rounded-md bg-[#faf6f1] p-4 text-sm text-ink/70">
+                  <p className="font-medium text-ink">{venueName || "예식장명"}</p>
+                  <p className="mt-2">
+                    {config.venueGuide.hall || "예식장 안내가 이곳에 표시됩니다."}
+                  </p>
+                </div>
+              </section>
+            );
+          }
+
+          if (sectionId === "gift" && config.bankAccounts.length) {
+            return (
+              <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
+                <h4 className="text-center text-lg font-semibold text-ink">
+                  {config.copy.giftTitle}
+                </h4>
+                <div className="mt-4 rounded-md border border-ink/10 p-3 text-sm text-ink/70">
+                  {config.bankAccounts[0].bankName || "계좌 정보"}
+                </div>
+              </section>
+            );
+          }
+
+          if (sectionId === "rsvp") {
+            return (
+              <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
+                <h4 className="text-center text-lg font-semibold text-ink">
+                  {config.copy.rsvpTitle}
+                </h4>
+                <div className="mt-4 rounded-md bg-[#faf6f1] p-4 text-center text-sm text-ink/60">
+                  참석 여부 폼이 여기에 표시됩니다.
+                </div>
+              </section>
+            );
+          }
+
+          if (sectionId === "guestbook") {
+            return (
+              <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
+                <h4 className="text-center text-lg font-semibold text-ink">
+                  {config.copy.guestbookTitle}
+                </h4>
+                <div className="mt-4 rounded-md bg-[#faf6f1] p-4 text-center text-sm text-ink/60">
+                  방명록이 여기에 표시됩니다.
+                </div>
+              </section>
+            );
+          }
+
+          return null;
+        })}
+      </div>
+    </div>
+  );
+}
+
+function formatPreviewDate(value: string) {
+  if (!value) {
+    return "예식 일시를 입력해 주세요.";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("ko-KR", {
+    dateStyle: "medium",
+    timeStyle: "short"
+  }).format(date);
+}
+
+function getFontClass(fontPreset: InvitationConfig["design"]["fontPreset"]) {
+  switch (fontPreset) {
+    case "modern":
+      return "font-sans";
+    case "romantic":
+      return "font-serif tracking-[0.02em]";
+    default:
+      return "font-serif";
+  }
+}
