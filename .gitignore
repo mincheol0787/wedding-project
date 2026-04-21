@@ -10,3 +10,5 @@ coverage
 *.tsbuildinfo
 prisma/*.db
 public/uploads
+
+.vercel
