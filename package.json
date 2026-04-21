@@ -17,7 +17,8 @@
     "admin:promote": "tsx scripts/promote-admin.ts",
     "worker:dev": "tsx worker/render-worker.ts",
     "remotion:studio": "remotion studio remotion/index.ts",
-    "remotion:render": "remotion render remotion/index.ts WeddingVideo out/video.mp4"
+    "remotion:render": "remotion render remotion/index.ts WeddingVideo out/video.mp4",
+    "changelog:update": "tsx scripts/update-changelog.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "latest",

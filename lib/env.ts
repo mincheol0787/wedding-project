@@ -5,6 +5,7 @@ const envSchema = z.object({
   AUTH_SECRET: z.string().min(1).optional(),
   AUTH_URL: z.string().url().optional(),
   NEXTAUTH_URL: z.string().url().optional(),
+  NEXT_PUBLIC_APP_URL: z.string().url().optional(),
   APP_PUBLIC_URL: z.string().url().optional(),
   VERCEL_PROJECT_PRODUCTION_URL: z.string().optional(),
   VERCEL_URL: z.string().optional(),
@@ -31,6 +32,7 @@ function toHttpsUrl(host?: string) {
 export const env = {
   ...parsed,
   APP_PUBLIC_URL:
+    parsed.NEXT_PUBLIC_APP_URL ??
     parsed.APP_PUBLIC_URL ??
     parsed.NEXTAUTH_URL ??
     parsed.AUTH_URL ??

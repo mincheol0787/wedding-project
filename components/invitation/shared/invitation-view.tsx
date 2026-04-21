@@ -163,21 +163,46 @@ function SectionRenderer({
             {typeof invitation.mapLat === "number" && typeof invitation.mapLng === "number" ? (
               <div className="grid gap-3">
                 <KakaoMapEmbed
+                  address={invitation.venueAddress}
                   lat={invitation.mapLat}
                   lng={invitation.mapLng}
                   title={invitation.venueName || invitation.title}
                 />
-                <a
-                  className="inline-flex w-fit rounded-md border border-ink/15 px-4 py-2 text-sm font-medium text-ink"
-                  href={`https://map.kakao.com/link/to/${encodeURIComponent(
-                    invitation.venueName || invitation.title
-                  )},${invitation.mapLat},${invitation.mapLng}`}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  {copy.mapButtonLabel}
-                </a>
+                <div className="flex flex-wrap gap-2">
+                  <a
+                    className="inline-flex rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-medium text-ink"
+                    href={
+                      invitation.config.placeSearch.placeUrl ||
+                      `https://map.kakao.com/link/map/${encodeURIComponent(
+                        invitation.venueName || invitation.title
+                      )},${invitation.mapLat},${invitation.mapLng}`
+                    }
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    지도보기
+                  </a>
+                  <a
+                    className="inline-flex rounded-md bg-ink px-4 py-2 text-sm font-medium text-white"
+                    href={`https://map.kakao.com/link/to/${encodeURIComponent(
+                      invitation.venueName || invitation.title
+                    )},${invitation.mapLat},${invitation.mapLng}`}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    {copy.mapButtonLabel}
+                  </a>
+                </div>
               </div>
+            ) : invitation.config.placeSearch.placeUrl ? (
+              <a
+                className="inline-flex w-fit rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-medium text-ink"
+                href={invitation.config.placeSearch.placeUrl}
+                rel="noreferrer"
+                target="_blank"
+              >
+                지도보기
+              </a>
             ) : null}
           </div>
         </SectionShell>

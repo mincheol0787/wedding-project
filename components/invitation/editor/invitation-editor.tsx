@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useMemo, useState, useTransition } from "react";
 import { InvitationLivePreview } from "@/components/invitation/editor/invitation-live-preview";
 import {
   saveInvitationAction,
@@ -32,6 +32,8 @@ type PlaceSearchResult = {
   phone?: string;
   placeUrl?: string;
 };
+
+type PreviewPlacement = "left" | "right" | "bottom";
 
 type InvitationEditorProps = {
   projectId: string;
@@ -97,6 +99,8 @@ export function InvitationEditor({
   const [placeResults, setPlaceResults] = useState<PlaceSearchResult[]>([]);
   const [placeSearchError, setPlaceSearchError] = useState<string>();
   const [isSearchingPlaces, setIsSearchingPlaces] = useState(false);
+  const [isPreviewMoving, startPreviewMoveTransition] = useTransition();
+  const [previewPlacement, setPreviewPlacement] = useState<PreviewPlacement>("right");
   const [submitIntent, setSubmitIntent] = useState<"draft" | "publish">("draft");
   const [draggingSectionId, setDraggingSectionId] = useState<InvitationSectionId | null>(null);
 
@@ -147,6 +151,7 @@ export function InvitationEditor({
       const response = await fetch(`/api/places/search?q=${encodeURIComponent(placeQuery.trim())}`);
       const json = (await response.json()) as {
         error?: string;
+        warning?: string;
         results?: PlaceSearchResult[];
       };
 
@@ -157,6 +162,7 @@ export function InvitationEditor({
       }
 
       setPlaceResults(json.results ?? []);
+      setPlaceSearchError(json.warning);
       if (!(json.results ?? []).length) {
         setPlaceSearchError("검색 결과가 없습니다. 장소명을 조금 다르게 입력해 보세요.");
       }
@@ -296,8 +302,56 @@ export function InvitationEditor({
     });
   }
 
+  function moveSection(fromId: InvitationSectionId, targetId: InvitationSectionId) {
+    if (fromId === targetId) {
+      return;
+    }
+
+    setConfig((current) => {
+      const next = [...current.sectionOrder];
+      const fromIndex = next.indexOf(fromId);
+      const toIndex = next.indexOf(targetId);
+
+      if (fromIndex < 0 || toIndex < 0) {
+        return current;
+      }
+
+      next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, fromId);
+
+      return {
+        ...current,
+        sectionOrder: next
+      };
+    });
+  }
+
+  function handlePreviewDrop(placement: PreviewPlacement) {
+    startPreviewMoveTransition(() => {
+      setPreviewPlacement(placement);
+    });
+  }
+
+  const selectedPlace =
+    form.venueName || form.venueAddress
+      ? {
+          name: form.venueName || "선택한 장소",
+          address: form.venueAddress,
+          lat: form.mapLat,
+          lng: form.mapLng,
+          placeUrl: config.placeSearch.placeUrl
+        }
+      : null;
+
   return (
-    <form action={formAction} className="grid gap-8 xl:grid-cols-[1.25fr_0.75fr]">
+    <form
+      action={formAction}
+      className={`grid gap-8 ${
+        previewPlacement === "bottom"
+          ? "xl:grid-cols-1"
+          : "xl:grid-cols-[minmax(0,1.18fr)_minmax(360px,0.82fr)]"
+      }`}
+    >
       <input name="galleryJson" type="hidden" value={galleryJson} />
       <input name="configJson" type="hidden" value={configJson} />
       <input name="title" type="hidden" value={form.title} />
@@ -316,7 +370,11 @@ export function InvitationEditor({
       <input name="mapLat" type="hidden" value={form.mapLat} />
       <input name="mapLng" type="hidden" value={form.mapLng} />
 
-      <div className="grid gap-8">
+      <div
+        className={`grid gap-8 ${previewPlacement === "left" ? "xl:order-2" : "xl:order-1"}`}
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={() => handlePreviewDrop("bottom")}
+      >
         <section className="grid gap-4 rounded-md border border-ink/10 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
@@ -476,6 +534,14 @@ export function InvitationEditor({
             </button>
           </div>
           {placeSearchError ? <p className="text-sm text-rose">{placeSearchError}</p> : null}
+          {isSearchingPlaces ? (
+            <div className="grid gap-2 rounded-md border border-rose/20 bg-rose/5 p-3">
+              <p className="text-xs font-medium text-rose">장소 후보를 찾고 있어요</p>
+              <div className="h-1.5 overflow-hidden rounded-full bg-white">
+                <div className="h-full w-1/3 animate-[soft-loading_1.15s_ease-in-out_infinite] rounded-full bg-rose/70" />
+              </div>
+            </div>
+          ) : null}
           {placeResults.length ? (
             <div className="grid gap-3">
               {placeResults.map((result) => (
@@ -493,14 +559,55 @@ export function InvitationEditor({
               ))}
             </div>
           ) : null}
+          {selectedPlace ? (
+            <div className="grid gap-4 rounded-md border border-rose/20 bg-rose/5 p-4 md:grid-cols-[1fr_auto] md:items-center">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose">
+                  Selected Venue
+                </p>
+                <p className="mt-2 text-base font-semibold text-ink">{selectedPlace.name}</p>
+                {selectedPlace.address ? (
+                  <p className="mt-1 text-sm leading-6 text-ink/65">{selectedPlace.address}</p>
+                ) : null}
+                {selectedPlace.lat && selectedPlace.lng ? (
+                  <p className="mt-2 text-xs text-ink/45">
+                    지도는 공개 페이지와 미리보기에서 자동으로 표시됩니다.
+                  </p>
+                ) : (
+                  <p className="mt-2 text-xs text-ink/45">
+                    장소 검색 결과를 선택하면 지도와 길찾기 버튼이 연결됩니다.
+                  </p>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {selectedPlace.placeUrl ? (
+                  <a
+                    className="rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-medium text-ink"
+                    href={selectedPlace.placeUrl}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    지도보기
+                  </a>
+                ) : null}
+                {selectedPlace.lat && selectedPlace.lng ? (
+                  <a
+                    className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-white"
+                    href={`https://map.kakao.com/link/to/${encodeURIComponent(
+                      selectedPlace.name
+                    )},${selectedPlace.lat},${selectedPlace.lng}`}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    길찾기
+                  </a>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
           <Input label="예식장명" value={form.venueName} onChange={(value) => setForm((current) => ({ ...current, venueName: value }))} />
           <Input label="주소" value={form.venueAddress} onChange={(value) => setForm((current) => ({ ...current, venueAddress: value }))} />
           <Input label="상세 안내" value={form.venueDetail} onChange={(value) => setForm((current) => ({ ...current, venueDetail: value }))} />
-          <div className="grid gap-4 md:grid-cols-3">
-            <Input label="지도 제공자" value={form.mapProvider} onChange={(value) => setForm((current) => ({ ...current, mapProvider: value }))} />
-            <Input label="위도" value={form.mapLat} onChange={(value) => setForm((current) => ({ ...current, mapLat: value }))} />
-            <Input label="경도" value={form.mapLng} onChange={(value) => setForm((current) => ({ ...current, mapLng: value }))} />
-          </div>
           <div className="grid gap-4 md:grid-cols-2">
             <Input label="홀" value={config.venueGuide.hall} onChange={(value) => updateVenueGuide("hall", value)} />
             <Input label="층" value={config.venueGuide.floor} onChange={(value) => updateVenueGuide("floor", value)} />
@@ -722,6 +829,16 @@ export function InvitationEditor({
         <section className="sticky bottom-4 z-10 rounded-md border border-ink/10 bg-white p-4 shadow-lg">
           {state.error ? <p className="mb-3 text-sm text-rose">{state.error}</p> : null}
           {state.message ? <p className="mb-3 text-sm text-sage">{state.message}</p> : null}
+          {pending ? (
+            <div className="mb-3 rounded-md border border-rose/20 bg-rose/5 px-3 py-3">
+              <p className="text-xs font-medium text-rose">
+                {submitIntent === "publish" ? "공개 페이지를 준비하고 있어요" : "초안을 저장하고 있어요"}
+              </p>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white">
+                <div className="h-full w-1/3 animate-[soft-loading_1.15s_ease-in-out_infinite] rounded-full bg-rose/70" />
+              </div>
+            </div>
+          ) : null}
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="text-sm text-ink/55">
               {publicUrl ? `공개 링크: ${publicUrl}` : "아직 발행 전입니다. 저장 후 공개를 눌러 주세요."}
@@ -752,7 +869,54 @@ export function InvitationEditor({
         </section>
       </div>
 
-      <aside className="xl:sticky xl:top-10 xl:self-start">
+      <aside
+        className={`${
+          previewPlacement === "left"
+            ? "xl:order-1"
+            : previewPlacement === "bottom"
+              ? "xl:order-2"
+              : "xl:order-2"
+        } ${previewPlacement === "bottom" ? "" : "xl:sticky xl:top-10 xl:self-start"}`}
+        draggable
+        onDragEnd={() => {
+          document.body.classList.remove("select-none");
+        }}
+        onDragStart={(event) => {
+          document.body.classList.add("select-none");
+          event.dataTransfer.setData("text/plain", "invitation-preview");
+        }}
+      >
+        <div className="mb-3 grid gap-2 rounded-md border border-dashed border-rose/25 bg-white/70 p-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm font-medium text-ink">미리보기 위치</p>
+            <p className="text-xs text-ink/50">
+              패널을 드래그하거나 아래 버튼으로 위치를 바꿀 수 있습니다.
+            </p>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-3">
+            {[
+              { id: "left", label: "왼쪽" },
+              { id: "right", label: "오른쪽" },
+              { id: "bottom", label: "하단" }
+            ].map((item) => (
+              <button
+                className={`rounded-md border px-3 py-2 text-sm transition ${
+                  previewPlacement === item.id
+                    ? "border-rose bg-rose/5 text-rose"
+                    : "border-ink/10 text-ink/65 hover:border-rose/30"
+                }`}
+                disabled={isPreviewMoving}
+                key={item.id}
+                onClick={() => handlePreviewDrop(item.id as PreviewPlacement)}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={() => handlePreviewDrop(item.id as PreviewPlacement)}
+                type="button"
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
         <InvitationLivePreview
           brideName={form.brideName}
           config={config}
@@ -760,6 +924,7 @@ export function InvitationEditor({
           gallery={gallery}
           greeting={form.greeting}
           groomName={form.groomName}
+          onMoveSection={moveSection}
           title={form.title}
           venueName={form.venueName}
         />

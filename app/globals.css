@@ -21,3 +21,19 @@ a {
   color: inherit;
   text-decoration: none;
 }
+
+@keyframes soft-loading {
+  0% {
+    opacity: 0.35;
+    transform: translateX(-80%);
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.35;
+    transform: translateX(220%);
+  }
+}

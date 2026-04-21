@@ -62,6 +62,7 @@ export async function GET(request: NextRequest) {
 
   if (!env.KAKAO_REST_API_KEY) {
     return NextResponse.json({
+      warning: "카카오 REST API 키가 없어 기본 장소 목록에서 검색했습니다.",
       results: filterFallbackPlaces(query)
     });
   }
@@ -81,13 +82,10 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
-      return NextResponse.json(
-        {
-          error: "장소 검색에 실패했습니다.",
-          results: filterFallbackPlaces(query)
-        },
-        { status: response.status }
-      );
+      return NextResponse.json({
+        warning: "카카오 장소 검색 응답이 원활하지 않아 기본 장소 목록에서 검색했습니다.",
+        results: filterFallbackPlaces(query)
+      });
     }
 
     const data = (await response.json()) as KakaoKeywordSearchResponse;
@@ -105,22 +103,21 @@ export async function GET(request: NextRequest) {
       }))
     });
   } catch {
-    return NextResponse.json(
-      {
-        error: "장소 검색 중 문제가 발생했습니다.",
-        results: filterFallbackPlaces(query)
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      warning: "장소 검색 중 문제가 발생해 기본 장소 목록에서 검색했습니다.",
+      results: filterFallbackPlaces(query)
+    });
   }
 }
 
 function filterFallbackPlaces(query: string) {
   const normalized = query.toLowerCase();
 
-  return fallbackPlaces.filter((place) =>
+  const results = fallbackPlaces.filter((place) =>
     [place.name, place.address, place.roadAddress].some((value) =>
       value.toLowerCase().includes(normalized)
     )
   );
+
+  return results.length ? results : fallbackPlaces;
 }

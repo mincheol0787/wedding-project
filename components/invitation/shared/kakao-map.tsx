@@ -23,9 +23,10 @@ type KakaoMapEmbedProps = {
   lat: number;
   lng: number;
   title: string;
+  address?: string | null;
 };
 
-export function KakaoMapEmbed({ lat, lng, title }: KakaoMapEmbedProps) {
+export function KakaoMapEmbed({ lat, lng, title, address }: KakaoMapEmbedProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scriptError, setScriptError] = useState(false);
   const appKey = process.env.NEXT_PUBLIC_KAKAO_MAP_APP_KEY;
@@ -84,8 +85,14 @@ export function KakaoMapEmbed({ lat, lng, title }: KakaoMapEmbedProps) {
 
   if (!appKey || scriptError) {
     return (
-      <div className="flex aspect-[4/3] items-center justify-center rounded-md border border-ink/10 bg-porcelain text-sm text-ink/55">
-        지도를 불러올 수 없어 좌표만 표시합니다.
+      <div className="grid aspect-[4/3] place-items-center rounded-md border border-ink/10 bg-porcelain px-5 text-center">
+        <div>
+          <p className="text-base font-semibold text-ink">{title}</p>
+          {address ? <p className="mt-2 text-sm leading-6 text-ink/60">{address}</p> : null}
+          <p className="mt-3 text-xs text-ink/45">
+            지도 키 설정 후 이 영역에 카카오 지도가 표시됩니다.
+          </p>
+        </div>
       </div>
     );
   }

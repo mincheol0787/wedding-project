@@ -1,10 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import { ReactNode, useState } from "react";
 import {
   invitationTemplates,
   type InvitationConfig,
-  type InvitationGalleryItem
+  type InvitationGalleryItem,
+  type InvitationSectionId
 } from "@/lib/invitation/types";
 
 type InvitationLivePreviewProps = {
@@ -16,6 +18,7 @@ type InvitationLivePreviewProps = {
   eventDate: string;
   gallery: InvitationGalleryItem[];
   config: InvitationConfig;
+  onMoveSection?: (fromId: InvitationSectionId, targetId: InvitationSectionId) => void;
 };
 
 export function InvitationLivePreview({
@@ -26,11 +29,40 @@ export function InvitationLivePreview({
   venueName,
   eventDate,
   gallery,
-  config
+  config,
+  onMoveSection
 }: InvitationLivePreviewProps) {
   const template =
     invitationTemplates.find((item) => item.id === config.templateId) ?? invitationTemplates[0];
   const previewGallery = gallery.slice(0, 3);
+  const [draggingSectionId, setDraggingSectionId] = useState<InvitationSectionId | null>(null);
+
+  function wrapPreviewSection(sectionId: InvitationSectionId, children: ReactNode) {
+    return (
+      <div
+        className={`transition ${
+          draggingSectionId === sectionId ? "bg-rose/5 opacity-80" : ""
+        }`}
+        draggable={Boolean(onMoveSection)}
+        key={sectionId}
+        onDragEnd={() => setDraggingSectionId(null)}
+        onDragOver={(event) => {
+          if (onMoveSection) {
+            event.preventDefault();
+          }
+        }}
+        onDragStart={() => setDraggingSectionId(sectionId)}
+        onDrop={() => {
+          if (draggingSectionId) {
+            onMoveSection?.(draggingSectionId, sectionId);
+          }
+        }}
+        title={onMoveSection ? "드래그해서 섹션 순서를 변경할 수 있습니다." : undefined}
+      >
+        {children}
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-md border border-ink/10 bg-white p-4 shadow-sm">
@@ -65,7 +97,8 @@ export function InvitationLivePreview({
 
         {config.sectionOrder.map((sectionId) => {
           if (sectionId === "intro") {
-            return (
+            return wrapPreviewSection(
+              sectionId,
               <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
                 <h4 className="text-center text-lg font-semibold text-ink">
                   {title || "청첩장 제목"}
@@ -78,7 +111,8 @@ export function InvitationLivePreview({
           }
 
           if (sectionId === "gallery" && previewGallery.length) {
-            return (
+            return wrapPreviewSection(
+              sectionId,
               <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
                 <h4 className="text-center text-lg font-semibold text-ink">
                   {config.copy.galleryTitle}
@@ -101,7 +135,8 @@ export function InvitationLivePreview({
           }
 
           if (sectionId === "location") {
-            return (
+            return wrapPreviewSection(
+              sectionId,
               <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
                 <h4 className="text-center text-lg font-semibold text-ink">
                   {config.copy.locationTitle}
@@ -117,7 +152,8 @@ export function InvitationLivePreview({
           }
 
           if (sectionId === "gift" && config.bankAccounts.length) {
-            return (
+            return wrapPreviewSection(
+              sectionId,
               <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
                 <h4 className="text-center text-lg font-semibold text-ink">
                   {config.copy.giftTitle}
@@ -130,7 +166,8 @@ export function InvitationLivePreview({
           }
 
           if (sectionId === "rsvp") {
-            return (
+            return wrapPreviewSection(
+              sectionId,
               <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
                 <h4 className="text-center text-lg font-semibold text-ink">
                   {config.copy.rsvpTitle}
@@ -143,7 +180,8 @@ export function InvitationLivePreview({
           }
 
           if (sectionId === "guestbook") {
-            return (
+            return wrapPreviewSection(
+              sectionId,
               <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
                 <h4 className="text-center text-lg font-semibold text-ink">
                   {config.copy.guestbookTitle}

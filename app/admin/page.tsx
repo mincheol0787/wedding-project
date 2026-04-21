@@ -27,6 +27,9 @@ export default async function AdminPage() {
           <div className="rounded-md border border-ink/10 bg-white px-5 py-4 text-sm text-ink/65">
             <p className="text-ink">관리자 계정</p>
             <p className="mt-1 font-medium text-rose">{admin.email}</p>
+            <Link className="mt-3 inline-flex font-medium text-sage" href="/admin/changelog">
+              변경 이력 보기
+            </Link>
           </div>
         </header>
 

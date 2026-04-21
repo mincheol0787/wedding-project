@@ -9,8 +9,11 @@ type InvitationPageProps = {
   }>;
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function InvitationPage({ params }: InvitationPageProps) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = decodeURIComponent(rawSlug).trim();
 
   if (slug === "sample") {
     return <InvitationView invitation={buildSampleInvitation()} />;
