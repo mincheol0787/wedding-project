@@ -22,9 +22,9 @@ export default async function DashboardPage() {
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-rose">
               Wedding Dashboard
             </p>
-            <h1 className="mt-3 text-4xl font-semibold text-ink">나의 웨딩 프로젝트</h1>
+            <h1 className="mt-3 text-4xl font-semibold text-ink">우리의 웨딩 프로젝트</h1>
             <p className="mt-4 max-w-2xl leading-7 text-ink/65">
-              모바일 청첩장, RSVP, 방명록, 식전영상 제작 현황을 한 곳에서 관리하세요.
+              모바일 청첩장, RSVP, 방명록, 식전영상과 일정 관리를 한 흐름으로 이어서 준비할 수 있어요.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -38,7 +38,7 @@ export default async function DashboardPage() {
           </div>
         </header>
 
-        <div className="mt-8 rounded-md border border-ink/10 bg-white/60 p-5">
+        <div className="mt-8 rounded-md border border-ink/10 bg-white/70 p-5">
           <p className="text-sm text-ink/55">로그인 계정</p>
           <p className="mt-1 font-medium text-ink">{session.user.email}</p>
         </div>
@@ -66,9 +66,9 @@ export default async function DashboardPage() {
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">
               First Project
             </p>
-            <h2 className="mt-3 text-2xl font-semibold text-ink">아직 프로젝트가 없습니다</h2>
+            <h2 className="mt-3 text-2xl font-semibold text-ink">아직 만든 프로젝트가 없어요</h2>
             <p className="mx-auto mt-3 max-w-xl leading-7 text-ink/60">
-              커플 이름과 예식일만 입력하면 모바일 청첩장과 식전영상 작업 공간이 함께 만들어집니다.
+              커플 이름과 예식일만 입력하면 청첩장과 식전영상 작업 공간이 함께 생성됩니다.
             </p>
             <Link
               href="/dashboard/projects/new"

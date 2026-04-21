@@ -54,6 +54,10 @@ type UpdateInvitationInput = {
   greeting?: string;
   groomName: string;
   brideName: string;
+  groomFatherName?: string;
+  groomMotherName?: string;
+  brideFatherName?: string;
+  brideMotherName?: string;
   eventDate?: Date;
   venueName?: string;
   venueAddress?: string;
@@ -78,6 +82,10 @@ export async function updateInvitationProject(input: UpdateInvitationInput) {
       publishedAt: input.status === "PUBLISHED" ? new Date() : null,
       title: input.title,
       greeting: input.greeting,
+      groomFatherName: input.groomFatherName,
+      groomMotherName: input.groomMotherName,
+      brideFatherName: input.brideFatherName,
+      brideMotherName: input.brideMotherName,
       eventDate: input.eventDate,
       venueName: input.venueName,
       venueAddress: input.venueAddress,

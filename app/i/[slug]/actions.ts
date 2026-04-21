@@ -58,7 +58,7 @@ export async function submitRsvpAction(
 
   if (!parsed.success) {
     return {
-      error: parsed.error.issues[0]?.message ?? "입력값을 확인해 주세요."
+      error: parsed.error.issues[0]?.message ?? "입력값을 다시 확인해 주세요."
     };
   }
 
@@ -79,7 +79,7 @@ export async function submitRsvpAction(
   revalidatePath(`/i/${slug}`);
 
   return {
-    message: "참석 여부가 전달되었습니다."
+    message: "참석 여부를 전달했습니다."
   };
 }
 
@@ -110,7 +110,7 @@ export async function submitGuestbookAction(
 
   if (!parsed.success) {
     return {
-      error: parsed.error.issues[0]?.message ?? "입력값을 확인해 주세요."
+      error: parsed.error.issues[0]?.message ?? "입력값을 다시 확인해 주세요."
     };
   }
 

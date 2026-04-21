@@ -9,6 +9,26 @@ type CreateWeddingProjectInput = {
   weddingDate?: Date;
 };
 
+type CreateScheduleEventInput = {
+  userId: string;
+  projectId: string;
+  title: string;
+  description?: string;
+  category:
+    | "MEETING"
+    | "VENUE"
+    | "STUDIO"
+    | "DRESS"
+    | "MAKEUP"
+    | "INVITATION"
+    | "VIDEO"
+    | "PAYMENT"
+    | "TODO";
+  startsAt: Date;
+  endsAt?: Date;
+  isAllDay?: boolean;
+};
+
 export async function createWeddingProject(input: CreateWeddingProjectInput) {
   const baseSlug = createSlug(input.title) || "wedding";
   const slug = `${baseSlug}-${Date.now().toString(36)}`;
@@ -47,9 +67,7 @@ export async function getWeddingProjectsByUserId(userId: string) {
     where: {
       deletedAt: null,
       OR: [
-        {
-          ownerId: userId
-        },
+        { ownerId: userId },
         {
           members: {
             some: {
@@ -85,6 +103,20 @@ export async function getWeddingProjectsByUserId(userId: string) {
           createdAt: true
         }
       },
+      scheduleEvents: {
+        where: {
+          deletedAt: null,
+          isCompleted: false,
+          startsAt: {
+            gte: startOfToday(),
+            lte: addDays(new Date(), 14)
+          }
+        },
+        orderBy: {
+          startsAt: "asc"
+        },
+        take: 2
+      },
       _count: {
         select: {
           mediaAssets: true,
@@ -104,9 +136,7 @@ export async function getWeddingProjectForVideoEditor(userId: string, projectId:
       id: projectId,
       deletedAt: null,
       OR: [
-        {
-          ownerId: userId
-        },
+        { ownerId: userId },
         {
           members: {
             some: {
@@ -130,4 +160,163 @@ export async function getWeddingProjectForVideoEditor(userId: string, projectId:
       }
     }
   });
+}
+
+export async function getWeddingProjectDetail(userId: string, projectId: string) {
+  return prisma.weddingProject.findFirst({
+    where: {
+      id: projectId,
+      deletedAt: null,
+      OR: [
+        { ownerId: userId },
+        {
+          members: {
+            some: {
+              userId,
+              deletedAt: null
+            }
+          }
+        }
+      ]
+    },
+    include: {
+      invitationProject: {
+        select: {
+          id: true,
+          publicSlug: true,
+          status: true,
+          updatedAt: true
+        }
+      },
+      videoProject: {
+        select: {
+          id: true,
+          updatedAt: true
+        }
+      },
+      scheduleEvents: {
+        where: {
+          deletedAt: null
+        },
+        orderBy: [{ startsAt: "asc" }, { sortOrder: "asc" }]
+      },
+      renderJobs: {
+        orderBy: {
+          createdAt: "desc"
+        },
+        take: 5,
+        select: {
+          id: true,
+          status: true,
+          progress: true,
+          createdAt: true,
+          errorMessage: true
+        }
+      }
+    }
+  });
+}
+
+export async function createProjectScheduleEvent(input: CreateScheduleEventInput) {
+  const project = await prisma.weddingProject.findFirst({
+    where: {
+      id: input.projectId,
+      deletedAt: null,
+      OR: [
+        { ownerId: input.userId },
+        {
+          members: {
+            some: {
+              userId: input.userId,
+              deletedAt: null
+            }
+          }
+        }
+      ]
+    },
+    select: {
+      id: true
+    }
+  });
+
+  if (!project) {
+    return null;
+  }
+
+  const sortOrder = await prisma.projectScheduleEvent.count({
+    where: {
+      weddingProjectId: project.id,
+      deletedAt: null
+    }
+  });
+
+  return prisma.projectScheduleEvent.create({
+    data: {
+      weddingProjectId: project.id,
+      title: input.title,
+      description: input.description,
+      category: input.category,
+      startsAt: input.startsAt,
+      endsAt: input.endsAt,
+      isAllDay: input.isAllDay ?? false,
+      sortOrder
+    }
+  });
+}
+
+export async function toggleProjectScheduleEvent(
+  userId: string,
+  projectId: string,
+  eventId: string,
+  isCompleted: boolean
+) {
+  const event = await prisma.projectScheduleEvent.findFirst({
+    where: {
+      id: eventId,
+      weddingProjectId: projectId,
+      deletedAt: null,
+      weddingProject: {
+        deletedAt: null,
+        OR: [
+          { ownerId: userId },
+          {
+            members: {
+              some: {
+                userId,
+                deletedAt: null
+              }
+            }
+          }
+        ]
+      }
+    },
+    select: {
+      id: true
+    }
+  });
+
+  if (!event) {
+    return null;
+  }
+
+  return prisma.projectScheduleEvent.update({
+    where: {
+      id: event.id
+    },
+    data: {
+      isCompleted
+    }
+  });
+}
+
+function addDays(date: Date, days: number) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function startOfToday() {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  return date;
 }

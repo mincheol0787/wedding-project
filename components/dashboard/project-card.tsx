@@ -29,12 +29,12 @@ const projectStatusLabel: Record<ProjectStatus, string> = {
   ACTIVE: "진행 중",
   ARCHIVED: "보관됨",
   DELETED: "삭제됨",
-  DRAFT: "작성 중"
+  DRAFT: "준비 중"
 };
 
 const invitationStatusLabel: Record<InvitationStatus, string> = {
   ARCHIVED: "보관됨",
-  DRAFT: "비공개",
+  DRAFT: "초안",
   PUBLISHED: "공개 중",
   UNPUBLISHED: "비공개"
 };
@@ -93,7 +93,7 @@ export function ProjectCard({
       </dl>
 
       <div className="mt-5 flex flex-wrap gap-2">
-        <Link className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-white" href="#">
+        <Link className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-white" href={`/dashboard/projects/${id}`}>
           프로젝트 열기
         </Link>
         <Link
@@ -102,14 +102,17 @@ export function ProjectCard({
         >
           청첩장 편집
         </Link>
-        {invitation ? (
-          <Link
-            className="rounded-md border border-ink/15 px-4 py-2 text-sm font-medium text-ink"
-            href={`/i/${invitation.publicSlug}`}
-          >
-            공개 페이지
-          </Link>
-        ) : null}
+        <Link
+          className="rounded-md border border-ink/15 px-4 py-2 text-sm font-medium text-ink"
+          href={
+            invitation?.status === "PUBLISHED"
+              ? `/i/${invitation.publicSlug}`
+              : `/dashboard/projects/${id}/invitation/preview`
+          }
+          target={invitation?.status === "PUBLISHED" ? "_blank" : undefined}
+        >
+          {invitation?.status === "PUBLISHED" ? "공개 페이지" : "청첩장 미리보기"}
+        </Link>
         <Link
           className="rounded-md border border-ink/15 px-4 py-2 text-sm font-medium text-ink"
           href={`/dashboard/projects/${id}/video`}
@@ -117,10 +120,11 @@ export function ProjectCard({
           영상 편집
         </Link>
       </div>
+
       {latestRenderJob ? (
         <div className="mt-5 rounded-md bg-porcelain p-3">
           <div className="flex items-center justify-between gap-3 text-sm">
-            <span className="font-medium text-ink">최근 렌더링: {latestRenderJob.status}</span>
+            <span className="font-medium text-ink">최근 렌더링 {latestRenderJob.status}</span>
             <span className="text-ink/55">{latestRenderJob.progress}%</span>
           </div>
           <div className="mt-2 h-2 overflow-hidden rounded-full bg-white">
@@ -131,7 +135,6 @@ export function ProjectCard({
           ) : null}
         </div>
       ) : null}
-      <p className="mt-4 text-xs text-ink/35">Project ID: {id}</p>
     </article>
   );
 }

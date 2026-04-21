@@ -36,7 +36,7 @@ export async function createProjectAction(
 
   if (!parsed.success) {
     return {
-      error: parsed.error.issues[0]?.message ?? "입력값을 확인해 주세요."
+      error: parsed.error.issues[0]?.message ?? "입력값을 다시 확인해 주세요."
     };
   }
 

@@ -4,29 +4,28 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import {
-  bankAccountSchema,
-  invitationGalleryItemSchema,
-  invitationTemplateIds
-} from "@/lib/invitation/types";
+import { invitationConfigSchema, invitationGalleryItemSchema } from "@/lib/invitation/types";
 import { updateInvitationProject } from "@/server/invitations/service";
 import { z } from "zod";
 
 const invitationFormSchema = z.object({
-  templateId: z.enum(invitationTemplateIds),
   title: z.string().min(1, "청첩장 제목을 입력해 주세요."),
   groomName: z.string().min(1, "신랑 이름을 입력해 주세요."),
   brideName: z.string().min(1, "신부 이름을 입력해 주세요."),
+  groomFatherName: z.string().optional(),
+  groomMotherName: z.string().optional(),
+  brideFatherName: z.string().optional(),
+  brideMotherName: z.string().optional(),
   eventDate: z.string().optional(),
+  greeting: z.string().optional(),
   venueName: z.string().optional(),
   venueAddress: z.string().optional(),
   venueDetail: z.string().optional(),
-  greeting: z.string().optional(),
   mapProvider: z.string().optional(),
   mapLat: z.string().optional(),
   mapLng: z.string().optional(),
   galleryJson: z.string().default("[]"),
-  bankAccountsJson: z.string().default("[]"),
+  configJson: z.string().default("{}"),
   intent: z.enum(["draft", "publish"])
 });
 
@@ -47,26 +46,29 @@ export async function saveInvitationAction(
   }
 
   const parsed = invitationFormSchema.safeParse({
-    templateId: formData.get("templateId"),
     title: formData.get("title"),
     groomName: formData.get("groomName"),
     brideName: formData.get("brideName"),
+    groomFatherName: formData.get("groomFatherName")?.toString(),
+    groomMotherName: formData.get("groomMotherName")?.toString(),
+    brideFatherName: formData.get("brideFatherName")?.toString(),
+    brideMotherName: formData.get("brideMotherName")?.toString(),
     eventDate: formData.get("eventDate")?.toString(),
+    greeting: formData.get("greeting")?.toString(),
     venueName: formData.get("venueName")?.toString(),
     venueAddress: formData.get("venueAddress")?.toString(),
     venueDetail: formData.get("venueDetail")?.toString(),
-    greeting: formData.get("greeting")?.toString(),
     mapProvider: formData.get("mapProvider")?.toString(),
     mapLat: formData.get("mapLat")?.toString(),
     mapLng: formData.get("mapLng")?.toString(),
     galleryJson: formData.get("galleryJson")?.toString(),
-    bankAccountsJson: formData.get("bankAccountsJson")?.toString(),
+    configJson: formData.get("configJson")?.toString(),
     intent: formData.get("intent")
   });
 
   if (!parsed.success) {
     return {
-      error: parsed.error.issues[0]?.message ?? "입력값을 확인해 주세요."
+      error: parsed.error.issues[0]?.message ?? "입력값을 다시 확인해 주세요."
     };
   }
 
@@ -75,9 +77,7 @@ export async function saveInvitationAction(
       id: projectId,
       deletedAt: null,
       OR: [
-        {
-          ownerId: session.user.id
-        },
+        { ownerId: session.user.id },
         {
           members: {
             some: {
@@ -99,24 +99,24 @@ export async function saveInvitationAction(
     };
   }
 
+  let configJson: unknown;
   let galleryJson: unknown;
-  let bankAccountsJson: unknown;
 
   try {
+    configJson = JSON.parse(parsed.data.configJson);
     galleryJson = JSON.parse(parsed.data.galleryJson);
-    bankAccountsJson = JSON.parse(parsed.data.bankAccountsJson);
   } catch {
     return {
-      error: "갤러리 또는 계좌 JSON을 읽을 수 없습니다."
+      error: "청첩장 설정 데이터가 올바르지 않습니다."
     };
   }
 
+  const config = invitationConfigSchema.safeParse(configJson);
   const gallery = invitationGalleryItemSchema.array().safeParse(galleryJson);
-  const bankAccounts = bankAccountSchema.array().safeParse(bankAccountsJson);
 
-  if (!gallery.success || !bankAccounts.success) {
+  if (!config.success || !gallery.success) {
     return {
-      error: "갤러리 또는 계좌 정보가 올바르지 않습니다."
+      error: "청첩장 설정을 다시 확인해 주세요."
     };
   }
 
@@ -129,6 +129,10 @@ export async function saveInvitationAction(
     greeting: parsed.data.greeting,
     groomName: parsed.data.groomName,
     brideName: parsed.data.brideName,
+    groomFatherName: parsed.data.groomFatherName,
+    groomMotherName: parsed.data.groomMotherName,
+    brideFatherName: parsed.data.brideFatherName,
+    brideMotherName: parsed.data.brideMotherName,
     eventDate: eventDate && !Number.isNaN(eventDate.getTime()) ? eventDate : undefined,
     venueName: parsed.data.venueName,
     venueAddress: parsed.data.venueAddress,
@@ -137,17 +141,19 @@ export async function saveInvitationAction(
     mapLat: parsed.data.mapLat,
     mapLng: parsed.data.mapLng,
     gallery: gallery.data,
-    config: {
-      templateId: parsed.data.templateId,
-      bankAccounts: bankAccounts.data
-    }
+    config: config.data
   });
 
   revalidatePath("/dashboard");
+  revalidatePath(`/dashboard/projects/${projectId}`);
   revalidatePath(`/dashboard/projects/${projectId}/invitation`);
+  revalidatePath(`/dashboard/projects/${projectId}/invitation/preview`);
   revalidatePath(`/i/${project.invitationProject.publicSlug}`);
 
   return {
-    message: parsed.data.intent === "publish" ? "청첩장을 공개했습니다." : "청첩장을 저장했습니다."
+    message:
+      parsed.data.intent === "publish"
+        ? "청첩장을 공개했습니다."
+        : "청첩장 초안을 저장했습니다."
   };
 }
