@@ -35,9 +35,7 @@ export async function requestRenderAction(
       id: projectId,
       deletedAt: null,
       OR: [
-        {
-          ownerId: session.user.id
-        },
+        { ownerId: session.user.id },
         {
           members: {
             some: {
@@ -72,9 +70,10 @@ export async function requestRenderAction(
   });
 
   revalidatePath("/dashboard");
+  revalidatePath(`/dashboard/projects/${projectId}`);
   revalidatePath(`/dashboard/projects/${projectId}/video`);
 
   return {
-    message: "렌더링 요청을 접수했습니다. 상태는 아래 목록에서 확인할 수 있습니다."
+    message: "렌더링 요청을 접수했습니다. 아래 상태 목록에서 진행 상황을 확인할 수 있어요."
   };
 }

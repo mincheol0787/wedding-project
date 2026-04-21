@@ -25,6 +25,18 @@ enum ProjectMemberRole {
   VIEWER
 }
 
+enum ScheduleCategory {
+  MEETING
+  VENUE
+  STUDIO
+  DRESS
+  MAKEUP
+  INVITATION
+  VIDEO
+  PAYMENT
+  TODO
+}
+
 enum TemplateType {
   INVITATION
   VIDEO
@@ -168,6 +180,7 @@ model WeddingProject {
   invitationProject   InvitationProject?
   mediaAssets         MediaAsset[]
   renderJobs          RenderJob[]
+  scheduleEvents      ProjectScheduleEvent[]
 
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
@@ -176,6 +189,29 @@ model WeddingProject {
   @@unique([ownerId, slug])
   @@index([ownerId, status])
   @@index([weddingDate])
+  @@index([deletedAt])
+}
+
+model ProjectScheduleEvent {
+  id                String           @id @default(cuid())
+  weddingProjectId  String
+  title             String
+  description       String?          @db.Text
+  category          ScheduleCategory @default(TODO)
+  startsAt          DateTime
+  endsAt            DateTime?
+  isAllDay          Boolean          @default(false)
+  isCompleted       Boolean          @default(false)
+  sortOrder         Int              @default(0)
+
+  weddingProject    WeddingProject   @relation(fields: [weddingProjectId], references: [id], onDelete: Cascade)
+
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  deletedAt         DateTime?
+
+  @@index([weddingProjectId, startsAt])
+  @@index([weddingProjectId, isCompleted])
   @@index([deletedAt])
 }
 

@@ -45,7 +45,7 @@ npx prisma migrate dev --name init
 npm run dev
 ```
 
-개발 서버는 기본적으로 `http://localhost:3000`에서 실행됩니다.
+개발 서버 주소는 `.env`의 `NEXTAUTH_URL`, `AUTH_URL`, `APP_PUBLIC_URL` 기준으로 사용됩니다.
 MinIO 콘솔은 `http://localhost:9001`에서 확인할 수 있으며, 로컬 기본 계정은 `minioadmin` / `minioadmin`입니다.
 
 Docker Desktop이 설치되어 있지 않다면 `npm run db:up`은 실행되지 않습니다. 이 경우 로컬 또는 원격 PostgreSQL과 Redis를 직접 실행한 뒤 `.env`의 `DATABASE_URL`, `REDIS_URL`을 해당 주소로 바꾸고 마이그레이션을 실행하세요.

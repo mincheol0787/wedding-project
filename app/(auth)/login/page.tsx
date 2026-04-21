@@ -11,10 +11,10 @@ export default function LoginPage() {
         <div className="max-w-2xl">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-rose">Account</p>
           <h1 className="mt-4 text-4xl font-semibold leading-tight text-ink">
-            소중한 하루를 차분하게 준비하세요.
+            준비해야 할 순간들을 차분하게 정리해 보세요.
           </h1>
           <p className="mt-5 text-base leading-7 text-ink/65">
-            로그인 후 내 프로젝트 목록을 확인하고, 식전영상과 모바일 청첩장을 이어서 제작할 수 있습니다.
+            로그인 후 프로젝트 목록을 확인하고, 식전영상과 모바일 청첩장을 같은 흐름 안에서 이어서 편집할 수 있어요.
           </p>
         </div>
         <AuthForm />

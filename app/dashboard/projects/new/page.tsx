@@ -21,7 +21,7 @@ export default async function NewProjectPage() {
         </p>
         <h1 className="mt-3 text-4xl font-semibold text-ink">새 웨딩 프로젝트</h1>
         <p className="mt-4 leading-7 text-ink/65">
-          기본 정보를 입력하면 모바일 청첩장과 식전영상 편집 공간이 함께 준비됩니다.
+          기본 정보만 입력하면 모바일 청첩장과 식전영상 편집 공간이 함께 준비됩니다.
         </p>
         <NewProjectForm />
       </section>

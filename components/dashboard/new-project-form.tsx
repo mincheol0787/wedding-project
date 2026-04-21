@@ -28,7 +28,7 @@ export function NewProjectForm() {
           <input
             className="rounded-md border border-ink/15 px-3 py-2 outline-none focus:border-rose"
             name="groomName"
-            placeholder="민준"
+            placeholder="민수"
             required
           />
         </label>

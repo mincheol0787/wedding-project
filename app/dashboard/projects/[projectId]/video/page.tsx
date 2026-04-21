@@ -33,15 +33,15 @@ export default async function VideoEditorPage({ params }: VideoEditorPageProps) 
       <section className="mx-auto max-w-7xl">
         <header className="mb-8 flex flex-col gap-5 border-b border-ink/10 pb-8 md:flex-row md:items-end md:justify-between">
           <div>
-            <Link className="text-sm font-medium text-ink/55" href="/dashboard">
-              대시보드로 돌아가기
+            <Link className="text-sm font-medium text-ink/55" href={`/dashboard/projects/${project.id}`}>
+              프로젝트 개요로 돌아가기
             </Link>
             <p className="mt-8 text-sm font-semibold uppercase tracking-[0.2em] text-rose">
               Wedding Video
             </p>
             <h1 className="mt-3 text-4xl font-semibold text-ink">식전영상 편집</h1>
             <p className="mt-4 max-w-2xl leading-7 text-ink/65">
-              사진, 문구, 배경음악, 템플릿을 조합해 Remotion 렌더링 입력 데이터를 준비합니다.
+              사진, 문구, 배경음악, 템플릿을 조합해 Remotion 렌더링 데이터까지 바로 연결할 수 있어요.
             </p>
           </div>
           <div className="rounded-md border border-ink/10 bg-white px-5 py-4 text-sm text-ink/65">
