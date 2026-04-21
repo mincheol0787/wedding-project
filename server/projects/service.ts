@@ -29,6 +29,11 @@ type CreateScheduleEventInput = {
   isAllDay?: boolean;
 };
 
+type UpdateScheduleEventInput = CreateScheduleEventInput & {
+  eventId: string;
+  isCompleted: boolean;
+};
+
 export async function createWeddingProject(input: CreateWeddingProjectInput) {
   const baseSlug = createSlug(input.title) || "wedding";
   const slug = `${baseSlug}-${Date.now().toString(36)}`;
@@ -305,6 +310,77 @@ export async function toggleProjectScheduleEvent(
     },
     data: {
       isCompleted
+    }
+  });
+}
+
+export async function updateProjectScheduleEvent(input: UpdateScheduleEventInput) {
+  const event = await getEditableScheduleEvent(input.userId, input.projectId, input.eventId);
+
+  if (!event) {
+    return null;
+  }
+
+  return prisma.projectScheduleEvent.update({
+    where: {
+      id: event.id
+    },
+    data: {
+      title: input.title,
+      description: input.description,
+      category: input.category,
+      startsAt: input.startsAt,
+      endsAt: input.endsAt,
+      isAllDay: input.isAllDay ?? false,
+      isCompleted: input.isCompleted
+    }
+  });
+}
+
+export async function deleteProjectScheduleEvent(
+  userId: string,
+  projectId: string,
+  eventId: string
+) {
+  const event = await getEditableScheduleEvent(userId, projectId, eventId);
+
+  if (!event) {
+    return null;
+  }
+
+  return prisma.projectScheduleEvent.update({
+    where: {
+      id: event.id
+    },
+    data: {
+      deletedAt: new Date()
+    }
+  });
+}
+
+async function getEditableScheduleEvent(userId: string, projectId: string, eventId: string) {
+  return prisma.projectScheduleEvent.findFirst({
+    where: {
+      id: eventId,
+      weddingProjectId: projectId,
+      deletedAt: null,
+      weddingProject: {
+        deletedAt: null,
+        OR: [
+          { ownerId: userId },
+          {
+            members: {
+              some: {
+                userId,
+                deletedAt: null
+              }
+            }
+          }
+        ]
+      }
+    },
+    select: {
+      id: true
     }
   });
 }

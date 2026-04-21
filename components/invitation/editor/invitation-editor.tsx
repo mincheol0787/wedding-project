@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useActionState, useMemo, useState, useTransition } from "react";
+import { useActionState, useMemo, useState } from "react";
 import { InvitationLivePreview } from "@/components/invitation/editor/invitation-live-preview";
 import {
   saveInvitationAction,
@@ -32,8 +32,6 @@ type PlaceSearchResult = {
   phone?: string;
   placeUrl?: string;
 };
-
-type PreviewPlacement = "left" | "right" | "bottom";
 
 type InvitationEditorProps = {
   projectId: string;
@@ -99,8 +97,7 @@ export function InvitationEditor({
   const [placeResults, setPlaceResults] = useState<PlaceSearchResult[]>([]);
   const [placeSearchError, setPlaceSearchError] = useState<string>();
   const [isSearchingPlaces, setIsSearchingPlaces] = useState(false);
-  const [isPreviewMoving, startPreviewMoveTransition] = useTransition();
-  const [previewPlacement, setPreviewPlacement] = useState<PreviewPlacement>("right");
+  const [isMobilePreviewOpen, setIsMobilePreviewOpen] = useState(false);
   const [submitIntent, setSubmitIntent] = useState<"draft" | "publish">("draft");
   const [draggingSectionId, setDraggingSectionId] = useState<InvitationSectionId | null>(null);
 
@@ -326,12 +323,6 @@ export function InvitationEditor({
     });
   }
 
-  function handlePreviewDrop(placement: PreviewPlacement) {
-    startPreviewMoveTransition(() => {
-      setPreviewPlacement(placement);
-    });
-  }
-
   const selectedPlace =
     form.venueName || form.venueAddress
       ? {
@@ -344,14 +335,7 @@ export function InvitationEditor({
       : null;
 
   return (
-    <form
-      action={formAction}
-      className={`grid gap-8 ${
-        previewPlacement === "bottom"
-          ? "xl:grid-cols-1"
-          : "xl:grid-cols-[minmax(0,1.18fr)_minmax(360px,0.82fr)]"
-      }`}
-    >
+    <form action={formAction} className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_390px] 2xl:grid-cols-[minmax(0,1fr)_430px]">
       <input name="galleryJson" type="hidden" value={galleryJson} />
       <input name="configJson" type="hidden" value={configJson} />
       <input name="title" type="hidden" value={form.title} />
@@ -370,11 +354,7 @@ export function InvitationEditor({
       <input name="mapLat" type="hidden" value={form.mapLat} />
       <input name="mapLng" type="hidden" value={form.mapLng} />
 
-      <div
-        className={`grid gap-8 ${previewPlacement === "left" ? "xl:order-2" : "xl:order-1"}`}
-        onDragOver={(event) => event.preventDefault()}
-        onDrop={() => handlePreviewDrop("bottom")}
-      >
+      <div className="min-w-0 grid gap-8">
         <section className="grid gap-4 rounded-md border border-ink/10 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
@@ -869,65 +849,30 @@ export function InvitationEditor({
         </section>
       </div>
 
-      <aside
-        className={`${
-          previewPlacement === "left"
-            ? "xl:order-1"
-            : previewPlacement === "bottom"
-              ? "xl:order-2"
-              : "xl:order-2"
-        } ${previewPlacement === "bottom" ? "" : "xl:sticky xl:top-10 xl:self-start"}`}
-        draggable
-        onDragEnd={() => {
-          document.body.classList.remove("select-none");
-        }}
-        onDragStart={(event) => {
-          document.body.classList.add("select-none");
-          event.dataTransfer.setData("text/plain", "invitation-preview");
-        }}
-      >
-        <div className="mb-3 grid gap-2 rounded-md border border-dashed border-rose/25 bg-white/70 p-3">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm font-medium text-ink">미리보기 위치</p>
-            <p className="text-xs text-ink/50">
-              패널을 드래그하거나 아래 버튼으로 위치를 바꿀 수 있습니다.
-            </p>
-          </div>
-          <div className="grid gap-2 sm:grid-cols-3">
-            {[
-              { id: "left", label: "왼쪽" },
-              { id: "right", label: "오른쪽" },
-              { id: "bottom", label: "하단" }
-            ].map((item) => (
-              <button
-                className={`rounded-md border px-3 py-2 text-sm transition ${
-                  previewPlacement === item.id
-                    ? "border-rose bg-rose/5 text-rose"
-                    : "border-ink/10 text-ink/65 hover:border-rose/30"
-                }`}
-                disabled={isPreviewMoving}
-                key={item.id}
-                onClick={() => handlePreviewDrop(item.id as PreviewPlacement)}
-                onDragOver={(event) => event.preventDefault()}
-                onDrop={() => handlePreviewDrop(item.id as PreviewPlacement)}
-                type="button"
-              >
-                {item.label}
-              </button>
-            ))}
+      <aside className="min-w-0 xl:sticky xl:top-10 xl:self-start">
+        <div className="rounded-md border border-ink/10 bg-white p-3 shadow-sm xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none">
+          <button
+            className="flex w-full items-center justify-between rounded-md border border-ink/10 px-4 py-3 text-left text-sm font-medium text-ink xl:hidden"
+            onClick={() => setIsMobilePreviewOpen((value) => !value)}
+            type="button"
+          >
+            모바일 미리보기
+            <span className="text-rose">{isMobilePreviewOpen ? "접기" : "열기"}</span>
+          </button>
+          <div className={`${isMobilePreviewOpen ? "mt-3 block" : "hidden"} xl:mt-0 xl:block`}>
+            <InvitationLivePreview
+              brideName={form.brideName}
+              config={config}
+              eventDate={form.eventDate}
+              gallery={gallery}
+              greeting={form.greeting}
+              groomName={form.groomName}
+              onMoveSection={moveSection}
+              title={form.title}
+              venueName={form.venueName}
+            />
           </div>
         </div>
-        <InvitationLivePreview
-          brideName={form.brideName}
-          config={config}
-          eventDate={form.eventDate}
-          gallery={gallery}
-          greeting={form.greeting}
-          groomName={form.groomName}
-          onMoveSection={moveSection}
-          title={form.title}
-          venueName={form.venueName}
-        />
       </aside>
     </form>
   );
