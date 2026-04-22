@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { CopyAccountButton } from "@/components/invitation/public/copy-account-button";
 import { GuestbookForm, RsvpForm } from "@/components/invitation/public/public-forms";
@@ -47,7 +48,6 @@ type InvitationViewProps = {
 };
 
 export function InvitationView({ invitation }: InvitationViewProps) {
-  const copy = invitation.config.copy;
   const fontClass = getFontClass(invitation.config.design.fontPreset);
   const eventDate = invitation.eventDate
     ? new Intl.DateTimeFormat("ko-KR", {
@@ -61,74 +61,22 @@ export function InvitationView({ invitation }: InvitationViewProps) {
   );
   const coverImage = invitation.gallery[0];
 
+  if (invitation.mode === "sample") {
+    return (
+      <SampleInvitationView
+        coverImage={coverImage}
+        eventDate={eventDate}
+        fontClass={fontClass}
+        invitation={invitation}
+        sections={sections}
+      />
+    );
+  }
+
   return (
     <main className={`min-h-screen bg-[#f7f2ed] px-3 py-4 text-ink sm:px-4 ${fontClass}`}>
       <article className="mx-auto max-w-md overflow-hidden rounded-md border border-black/5 bg-white shadow-[0_20px_70px_rgba(36,36,36,0.08)]">
-        <header className={`relative min-h-[560px] overflow-hidden border-b border-[#f1e7df] text-center ${coverImage ? "" : "bg-[#fffaf6]"}`}>
-          {coverImage ? (
-            <Image
-              alt={coverImage.alt ?? coverImage.fileName}
-              className={invitation.config.design.autoFocus ? "object-cover" : "object-contain"}
-              fill
-              priority
-              src={coverImage.src}
-              style={{
-                objectPosition: invitation.config.design.autoFocus ? "center 42%" : "center center"
-              }}
-              unoptimized
-            />
-          ) : null}
-          {coverImage ? <div className="absolute inset-0 bg-black/18" /> : null}
-          <div
-            className="absolute inset-x-6 top-1/2"
-            style={{
-              transform: `translateY(calc(-50% + ${invitation.config.design.heroOffsetY}px))`,
-              transitionDuration: `${invitation.config.design.heroMotionSpeed / 2}s`
-            }}
-          >
-            <p
-              className="text-[12px] font-semibold uppercase tracking-[0.28em]"
-              style={{ color: invitation.config.design.heroAccentColor }}
-            >
-              {copy.heroEyebrow}
-            </p>
-            <h1
-              className="mt-6 text-5xl font-semibold leading-[0.95]"
-              style={{ color: invitation.config.design.heroTextColor }}
-            >
-              {invitation.groomName}
-              <span className="mx-3">&</span>
-              {invitation.brideName}
-            </h1>
-            <p className={`mt-5 text-sm leading-7 ${coverImage ? "text-white/84" : "text-ink/60"}`}>{eventDate}</p>
-            {(invitation.venueName || invitation.venueAddress) && (
-              <div className={`mt-3 text-sm leading-7 ${coverImage ? "text-white/78" : "text-ink/62"}`}>
-                {invitation.venueName ? <p className="font-medium">{invitation.venueName}</p> : null}
-                {invitation.venueAddress ? <p>{invitation.venueAddress}</p> : null}
-              </div>
-            )}
-          </div>
-          {(invitation.groomFatherName ||
-            invitation.groomMotherName ||
-            invitation.brideFatherName ||
-            invitation.brideMotherName) && (
-            <div className="absolute inset-x-6 bottom-8 rounded-md border border-white/30 bg-white/86 px-4 py-4 text-sm leading-7 text-ink/70 backdrop-blur">
-              <p>
-                {renderParents(invitation.groomFatherName, invitation.groomMotherName)}의 아들{" "}
-                <span className="font-semibold text-ink">{invitation.groomName}</span>
-              </p>
-              <p>
-                {renderParents(invitation.brideFatherName, invitation.brideMotherName)}의 딸{" "}
-                <span className="font-semibold text-ink">{invitation.brideName}</span>
-              </p>
-            </div>
-          )}
-          {invitation.mode === "preview" ? (
-            <div className="absolute left-6 right-6 top-6 rounded-md border border-dashed border-white/40 bg-white/80 px-4 py-3 text-sm text-rose backdrop-blur">
-              미리보기 화면입니다. 발행 전이라도 편집 결과를 같은 레이아웃으로 확인할 수 있어요.
-            </div>
-          ) : null}
-        </header>
+        <InvitationHero coverImage={coverImage} eventDate={eventDate} invitation={invitation} />
 
         <div className="grid gap-0">
           {sections.map((sectionId) => (
@@ -137,6 +85,225 @@ export function InvitationView({ invitation }: InvitationViewProps) {
         </div>
       </article>
     </main>
+  );
+}
+
+function SampleInvitationView({
+  invitation,
+  sections,
+  coverImage,
+  eventDate,
+  fontClass
+}: {
+  invitation: InvitationViewData;
+  sections: InvitationSectionId[];
+  coverImage?: InvitationGalleryItem;
+  eventDate: string;
+  fontClass: string;
+}) {
+  return (
+    <main className={`min-h-screen bg-[#f7f2ed] text-ink ${fontClass}`}>
+      <section className="mx-auto max-w-7xl px-4 py-7 sm:px-6 lg:py-10">
+        <div className="mb-7 grid gap-5 rounded-md border border-ink/10 bg-white/82 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.08)] backdrop-blur lg:grid-cols-[1fr_auto] lg:items-end lg:p-7">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-rose">
+              Sample Invitation
+            </p>
+            <h1 className="mt-3 text-3xl font-semibold leading-tight text-ink sm:text-4xl">
+              모바일 청첩장 샘플을 한눈에 확인하세요
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-ink/62">
+              실제 공개 청첩장은 모바일에 최적화되어 보이고, 이 샘플 화면에서는 필요한 정보를
+              놓치지 않도록 각 섹션을 넓은 카드로 함께 펼쳐 보여줍니다.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              className="inline-flex rounded-md bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-ink/90"
+              href="/login"
+            >
+              무료로 시작하기
+            </Link>
+            <Link
+              className="inline-flex rounded-md border border-ink/15 bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:bg-[#f7f2ed]"
+              href="/"
+            >
+              서비스 둘러보기
+            </Link>
+          </div>
+        </div>
+
+        <div className="grid gap-7 lg:grid-cols-[minmax(320px,430px)_minmax(0,1fr)] lg:items-start">
+          <aside className="lg:sticky lg:top-24">
+            <article className="overflow-hidden rounded-md border border-black/5 bg-white shadow-[0_20px_70px_rgba(36,36,36,0.1)]">
+              <InvitationHero
+                coverImage={coverImage}
+                eventDate={eventDate}
+                invitation={invitation}
+                minHeightClass="min-h-[500px]"
+              />
+            </article>
+            <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+              <SampleStat label="섹션" value={`${sections.length}개`} />
+              <SampleStat label="사진" value={`${invitation.gallery.length}장`} />
+              <SampleStat label="폼" value={invitation.rsvpEnabled ? "사용" : "미사용"} />
+            </div>
+          </aside>
+
+          <div className="min-w-0 space-y-4">
+            <section className="rounded-md border border-ink/10 bg-white p-5 shadow-[0_16px_54px_rgba(36,36,36,0.07)] sm:p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-rose">
+                Overview
+              </p>
+              <h2 className="mt-3 text-2xl font-semibold text-ink">{invitation.title}</h2>
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                <SampleInfo label="예식 일시" value={eventDate} />
+                <SampleInfo
+                  label="예식 장소"
+                  value={[invitation.venueName, invitation.venueDetail].filter(Boolean).join(" · ")}
+                />
+                <SampleInfo
+                  label="제공 기능"
+                  value="갤러리, 지도, 계좌 복사, 참석 의사, 방명록"
+                />
+              </div>
+            </section>
+
+            {sections.map((sectionId, index) => (
+              <article
+                className="rounded-md border border-ink/10 bg-white shadow-[0_16px_54px_rgba(36,36,36,0.06)]"
+                id={`sample-section-${sectionId}`}
+                key={sectionId}
+              >
+                <div className="flex items-center justify-between gap-4 border-b border-[#f3ebe5] bg-[#fbf8f4] px-5 py-4">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-rose">
+                      {String(index + 1).padStart(2, "0")}
+                    </p>
+                    <h3 className="mt-1 text-lg font-semibold text-ink">
+                      {getSectionLabel(sectionId)}
+                    </h3>
+                  </div>
+                  <a
+                    className="rounded-md border border-ink/10 bg-white px-3 py-2 text-xs font-medium text-ink/64 transition hover:text-ink"
+                    href={`#sample-section-${sectionId}`}
+                  >
+                    보기
+                  </a>
+                </div>
+                <SectionRenderer invitation={invitation} sectionId={sectionId} />
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function InvitationHero({
+  invitation,
+  coverImage,
+  eventDate,
+  minHeightClass = "min-h-[560px]"
+}: {
+  invitation: InvitationViewData;
+  coverImage?: InvitationGalleryItem;
+  eventDate: string;
+  minHeightClass?: string;
+}) {
+  const copy = invitation.config.copy;
+
+  return (
+    <header
+      className={`relative ${minHeightClass} overflow-hidden border-b border-[#f1e7df] text-center ${
+        coverImage ? "" : "bg-[#fffaf6]"
+      }`}
+    >
+      {coverImage ? (
+        <Image
+          alt={coverImage.alt ?? coverImage.fileName}
+          className={invitation.config.design.autoFocus ? "object-cover" : "object-contain"}
+          fill
+          priority
+          src={coverImage.src}
+          style={{
+            objectPosition: invitation.config.design.autoFocus ? "center 42%" : "center center"
+          }}
+          unoptimized
+        />
+      ) : null}
+      {coverImage ? <div className="absolute inset-0 bg-black/18" /> : null}
+      <div
+        className="absolute inset-x-6 top-1/2"
+        style={{
+          transform: `translateY(calc(-50% + ${invitation.config.design.heroOffsetY}px))`,
+          transitionDuration: `${invitation.config.design.heroMotionSpeed / 2}s`
+        }}
+      >
+        <p
+          className="text-[12px] font-semibold uppercase tracking-[0.28em]"
+          style={{ color: invitation.config.design.heroAccentColor }}
+        >
+          {copy.heroEyebrow}
+        </p>
+        <h1
+          className="mt-6 text-5xl font-semibold leading-[0.95]"
+          style={{ color: invitation.config.design.heroTextColor }}
+        >
+          {invitation.groomName}
+          <span className="mx-3">&</span>
+          {invitation.brideName}
+        </h1>
+        <p className={`mt-5 text-sm leading-7 ${coverImage ? "text-white/84" : "text-ink/60"}`}>
+          {eventDate}
+        </p>
+        {(invitation.venueName || invitation.venueAddress) && (
+          <div className={`mt-3 text-sm leading-7 ${coverImage ? "text-white/78" : "text-ink/62"}`}>
+            {invitation.venueName ? <p className="font-medium">{invitation.venueName}</p> : null}
+            {invitation.venueAddress ? <p>{invitation.venueAddress}</p> : null}
+          </div>
+        )}
+      </div>
+      {(invitation.groomFatherName ||
+        invitation.groomMotherName ||
+        invitation.brideFatherName ||
+        invitation.brideMotherName) && (
+        <div className="absolute inset-x-6 bottom-8 rounded-md border border-white/30 bg-white/86 px-4 py-4 text-sm leading-7 text-ink/70 backdrop-blur">
+          <p>
+            {renderParents(invitation.groomFatherName, invitation.groomMotherName)}의 아들{" "}
+            <span className="font-semibold text-ink">{invitation.groomName}</span>
+          </p>
+          <p>
+            {renderParents(invitation.brideFatherName, invitation.brideMotherName)}의 딸{" "}
+            <span className="font-semibold text-ink">{invitation.brideName}</span>
+          </p>
+        </div>
+      )}
+      {invitation.mode === "preview" ? (
+        <div className="absolute left-6 right-6 top-6 rounded-md border border-dashed border-white/40 bg-white/80 px-4 py-3 text-sm text-rose backdrop-blur">
+          미리보기 화면입니다. 발행 전이라도 편집 결과를 같은 레이아웃으로 확인할 수 있어요.
+        </div>
+      ) : null}
+    </header>
+  );
+}
+
+function SampleStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md border border-ink/10 bg-white/82 px-3 py-3 shadow-[0_10px_30px_rgba(36,36,36,0.05)]">
+      <p className="text-xs text-ink/48">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-ink">{value}</p>
+    </div>
+  );
+}
+
+function SampleInfo({ label, value }: { label: string; value?: string | null }) {
+  return (
+    <div className="rounded-md bg-[#f7f2ed] p-4">
+      <p className="text-xs font-medium text-ink/45">{label}</p>
+      <p className="mt-2 text-sm leading-6 text-ink/75">{value || "준비 중입니다."}</p>
+    </div>
   );
 }
 
@@ -417,6 +584,27 @@ function renderVenueGuideRows(venueGuide: InvitationConfig["venueGuide"]) {
     { label: "식사", value: venueGuide.meal },
     { label: "기타", value: venueGuide.extra }
   ].filter((item) => item.value);
+}
+
+function getSectionLabel(sectionId: InvitationSectionId) {
+  switch (sectionId) {
+    case "intro":
+      return "인사말";
+    case "gallery":
+      return "사진 갤러리";
+    case "location":
+      return "오시는 길";
+    case "contacts":
+      return "연락처";
+    case "gift":
+      return "마음 전하실 곳";
+    case "rsvp":
+      return "참석 의사";
+    case "guestbook":
+      return "방명록";
+    default:
+      return "청첩장 섹션";
+  }
 }
 
 function getFontClass(fontPreset: InvitationConfig["design"]["fontPreset"]) {

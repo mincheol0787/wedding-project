@@ -77,6 +77,7 @@ function buildSampleInvitation(): InvitationViewData {
 
   config.galleryOptions.displayMode = "animated";
   config.galleryOptions.showSaveButton = true;
+  config.visibility.contacts = true;
   config.copy.heroDescription =
     "서로의 하루를 닮아가며 차분하게 쌓아온 시간 끝에 결혼합니다.";
   config.copy.locationDescription = "예식장 안내와 함께 홀, 층, 주차 정보를 확인해 주세요.";
@@ -116,6 +117,8 @@ function buildSampleInvitation(): InvitationViewData {
     venueName: "라비앙 웨딩홀",
     venueAddress: "서울 강남구 테헤란로 123",
     venueDetail: "3층 로즈홀",
+    contactPhoneGroom: "010-1234-5678",
+    contactPhoneBride: "010-9876-5432",
     mapProvider: "kakao",
     mapLat: 37.5004,
     mapLng: 127.0368,
