@@ -45,7 +45,7 @@ export function InvitationLivePreview({
     return (
       <div
         className={`transition ${
-          draggingSectionId === sectionId ? "bg-rose/5 opacity-80" : ""
+          draggingSectionId === sectionId ? "bg-sage/10 opacity-80" : ""
         }`}
         draggable={Boolean(onMoveSection)}
         key={sectionId}
@@ -69,25 +69,25 @@ export function InvitationLivePreview({
   }
 
   return (
-    <div className="rounded-md border border-ink/10 bg-white p-4 shadow-sm">
+    <div className="rounded-md border border-ink/10 bg-[#20221f] p-4 text-white shadow-[0_20px_70px_rgba(32,34,31,0.16)]">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-rose">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#d9b1a3]">
             Live Preview
           </p>
-          <p className="mt-1 text-sm text-ink/55">선택한 템플릿과 폰트가 바로 반영됩니다.</p>
+          <p className="mt-1 text-sm text-white/58">선택한 템플릿과 폰트가 바로 반영됩니다.</p>
         </div>
-        <span className={`rounded-full px-3 py-1 text-xs font-medium text-ink ${template.accentClass}`}>
+        <span className="rounded-md border border-white/12 bg-white/8 px-3 py-1 text-xs font-medium text-white/80">
           {template.name}
         </span>
       </div>
 
       <div
-        className={`mx-auto max-w-[320px] overflow-hidden rounded-md border border-black/5 bg-white ${getFontClass(
+        className={`mx-auto max-w-[314px] overflow-hidden rounded-md border border-white/10 bg-white text-ink shadow-[0_22px_70px_rgba(0,0,0,0.25)] ${getFontClass(
           config.design.fontPreset
         )}`}
       >
-        <div className={`px-5 py-6 text-center ${template.accentClass}`}>
+        <div className={`px-5 py-7 text-center ${template.accentClass}`}>
           <p className="text-[11px] uppercase tracking-[0.28em] text-rose">
             {config.copy.heroEyebrow}
           </p>
@@ -108,7 +108,7 @@ export function InvitationLivePreview({
 
             return wrapPreviewSection(
               sectionId,
-              <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
+              <section className="border-t border-[#edf0eb] px-5 py-5" key={sectionId}>
                 <h4 className="text-center text-lg font-semibold text-ink">
                   {title || "청첩장 제목"}
                 </h4>
@@ -126,13 +126,13 @@ export function InvitationLivePreview({
 
             return wrapPreviewSection(
               sectionId,
-              <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
+              <section className="border-t border-[#edf0eb] px-5 py-5" key={sectionId}>
                 <h4 className="text-center text-lg font-semibold text-ink">
                   {config.copy.galleryTitle}
                 </h4>
                 <div className="mt-4 grid grid-cols-3 gap-2">
                   {previewGallery.map((item) => (
-                    <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-porcelain" key={item.id}>
+                    <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-[#eef1ed]" key={item.id}>
                       <Image
                         alt={item.alt ?? item.fileName}
                         className="object-cover"
@@ -154,11 +154,11 @@ export function InvitationLivePreview({
 
             return wrapPreviewSection(
               sectionId,
-              <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
+              <section className="border-t border-[#edf0eb] px-5 py-5" key={sectionId}>
                 <h4 className="text-center text-lg font-semibold text-ink">
                   {config.copy.locationTitle}
                 </h4>
-                <div className="mt-4 rounded-md bg-[#faf6f1] p-4 text-sm text-ink/70">
+                <div className="mt-4 rounded-md bg-[#f4f7f2] p-4 text-sm text-ink/70">
                   <p className="font-medium text-ink">{venueName || "예식장명"}</p>
                   {config.visibility.venueGuide ? (
                     <p className="mt-2">
@@ -177,7 +177,7 @@ export function InvitationLivePreview({
 
             return wrapPreviewSection(
               sectionId,
-              <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
+              <section className="border-t border-[#edf0eb] px-5 py-5" key={sectionId}>
                 <h4 className="text-center text-lg font-semibold text-ink">연락처</h4>
                 <div className="mt-4 grid gap-2 text-sm text-ink/70">
                   {contactPhoneGroom ? (
@@ -202,7 +202,7 @@ export function InvitationLivePreview({
 
             return wrapPreviewSection(
               sectionId,
-              <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
+              <section className="border-t border-[#edf0eb] px-5 py-5" key={sectionId}>
                 <h4 className="text-center text-lg font-semibold text-ink">
                   {config.copy.giftTitle}
                 </h4>
@@ -220,11 +220,11 @@ export function InvitationLivePreview({
 
             return wrapPreviewSection(
               sectionId,
-              <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
+              <section className="border-t border-[#edf0eb] px-5 py-5" key={sectionId}>
                 <h4 className="text-center text-lg font-semibold text-ink">
                   {config.copy.rsvpTitle}
                 </h4>
-                <div className="mt-4 rounded-md bg-[#faf6f1] p-4 text-center text-sm text-ink/60">
+                <div className="mt-4 rounded-md bg-[#f4f7f2] p-4 text-center text-sm text-ink/60">
                   참석 여부 폼이 여기에 표시됩니다.
                 </div>
               </section>
@@ -238,11 +238,11 @@ export function InvitationLivePreview({
 
             return wrapPreviewSection(
               sectionId,
-              <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
+              <section className="border-t border-[#edf0eb] px-5 py-5" key={sectionId}>
                 <h4 className="text-center text-lg font-semibold text-ink">
                   {config.copy.guestbookTitle}
                 </h4>
-                <div className="mt-4 rounded-md bg-[#faf6f1] p-4 text-center text-sm text-ink/60">
+                <div className="mt-4 rounded-md bg-[#f4f7f2] p-4 text-center text-sm text-ink/60">
                   방명록이 여기에 표시됩니다.
                 </div>
               </section>

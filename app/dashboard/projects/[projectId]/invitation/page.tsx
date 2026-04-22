@@ -30,25 +30,27 @@ export default async function InvitationEditorPage({ params }: InvitationEditorP
   const previewUrl = `/dashboard/projects/${project.id}/invitation/preview`;
 
   return (
-    <main className="min-h-screen bg-porcelain px-6 py-10">
-      <section className="mx-auto max-w-6xl">
-        <header className="mb-8 flex flex-col gap-5 border-b border-ink/10 pb-8 md:flex-row md:items-end md:justify-between">
+    <main className="min-h-screen bg-[#f5f7f4] px-4 py-8 sm:px-6 lg:py-10">
+      <section className="mx-auto max-w-7xl">
+        <header className="mb-8 grid gap-6 rounded-md border border-ink/10 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] md:grid-cols-[1fr_auto] md:items-end lg:px-7 lg:py-6">
           <div>
-            <Link className="text-sm font-medium text-ink/55" href={`/dashboard/projects/${project.id}`}>
+            <Link className="text-sm font-medium text-ink/55 transition hover:text-rose" href={`/dashboard/projects/${project.id}`}>
               프로젝트 개요로 돌아가기
             </Link>
-            <p className="mt-8 text-sm font-semibold uppercase tracking-[0.2em] text-rose">
+            <p className="mt-6 text-xs font-semibold uppercase tracking-[0.2em] text-sage">
               Mobile Invitation
             </p>
-            <h1 className="mt-3 text-4xl font-semibold text-ink">모바일 청첩장 편집</h1>
-            <p className="mt-4 max-w-2xl leading-7 text-ink/65">
-              장소 검색, 지도, 갤러리 표현 방식, 문구, 섹션 순서를 한 화면에서 정리하고
-              바로 미리보기까지 이어집니다.
+            <h1 className="mt-3 text-3xl font-semibold leading-tight text-ink md:text-5xl">
+              초대의 결을 다듬는 편집실
+            </h1>
+            <p className="mt-4 max-w-3xl text-base leading-7 text-ink/62">
+              템플릿, 문구, 사진, 장소, 섹션 순서를 한 흐름에서 정리하고 오른쪽에서 바로 확인합니다.
             </p>
           </div>
-          <div className="rounded-md border border-ink/10 bg-white px-5 py-4 text-sm text-ink/65">
-            <p className="font-medium text-ink">{project.title}</p>
-            <p className="mt-1">상태: {invitation.status}</p>
+          <div className="rounded-md border border-ink/10 bg-[#f8faf8] px-5 py-4 text-sm text-ink/65">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose">Project</p>
+            <p className="mt-2 font-medium text-ink">{project.title}</p>
+            <p className="mt-1">청첩장 상태: {invitation.status}</p>
           </div>
         </header>
 

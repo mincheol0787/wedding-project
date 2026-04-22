@@ -352,7 +352,7 @@ export function InvitationEditor({
       : null;
 
   return (
-    <form action={formAction} className="grid gap-8 xl:h-[calc(100vh-5rem)] xl:grid-cols-[minmax(0,1fr)_390px] xl:overflow-hidden 2xl:grid-cols-[minmax(0,1fr)_430px]">
+    <form action={formAction} className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px] xl:items-start 2xl:grid-cols-[minmax(0,1fr)_420px]">
       <input name="galleryJson" type="hidden" value={galleryJson} />
       <input name="configJson" type="hidden" value={configJson} />
       <input name="title" type="hidden" value={form.title} />
@@ -373,8 +373,8 @@ export function InvitationEditor({
       <input name="mapLat" type="hidden" value={form.mapLat} />
       <input name="mapLng" type="hidden" value={form.mapLng} />
 
-      <div className="min-w-0 grid gap-8 xl:overflow-y-auto xl:pr-2">
-        <section className="grid gap-4 rounded-md border border-ink/10 bg-white p-5 shadow-sm">
+      <div className="min-w-0 grid gap-5">
+        <section className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Template</p>
@@ -385,7 +385,7 @@ export function InvitationEditor({
             </div>
             <div className="flex flex-wrap gap-2">
               <a
-                className="rounded-md border border-ink/15 px-4 py-2 text-sm font-medium text-ink"
+                className="rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-medium text-ink transition hover:border-sage/40 hover:text-sage"
                 href={previewUrl}
                 rel="noreferrer"
                 target="_blank"
@@ -394,7 +394,7 @@ export function InvitationEditor({
               </a>
               {publicUrl ? (
                 <a
-                  className="rounded-md border border-ink/15 px-4 py-2 text-sm font-medium text-ink"
+                  className="rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-medium text-ink transition hover:border-rose/40 hover:text-rose"
                   href={publicUrl}
                   rel="noreferrer"
                   target="_blank"
@@ -410,15 +410,15 @@ export function InvitationEditor({
               const isActive = config.templateId === template.id;
               return (
                 <button
-                  className={`overflow-hidden rounded-md border text-left transition ${
-                    isActive ? "border-rose shadow-sm" : "border-ink/10 hover:border-ink/30"
+                  className={`overflow-hidden rounded-md border bg-[#fbfcfb] text-left transition ${
+                    isActive ? "border-rose shadow-[0_14px_38px_rgba(179,91,99,0.12)]" : "border-ink/10 hover:border-ink/30"
                   }`}
                   key={template.id}
                   onClick={() => selectTemplate(template.id)}
                   type="button"
                 >
                   <div className={`px-4 py-3 ${template.accentClass}`}>
-                    <div className="rounded-md border border-white/70 bg-white/80 px-3 py-4">
+                    <div className="px-1 py-3">
                       <p className="text-[10px] uppercase tracking-[0.24em] text-rose">
                         {config.copy.heroEyebrow}
                       </p>
@@ -444,10 +444,10 @@ export function InvitationEditor({
           <div className="grid gap-3 md:grid-cols-3">
             {invitationFontPresets.map((fontPreset) => (
               <button
-                className={`rounded-md border px-4 py-4 text-left ${
+                className={`rounded-md border px-4 py-4 text-left transition ${
                   config.design.fontPreset === fontPreset
-                    ? "border-rose bg-rose/5"
-                    : "border-ink/10"
+                    ? "border-sage bg-sage/10"
+                    : "border-ink/10 bg-[#fbfcfb] hover:border-sage/35"
                 }`}
                 key={fontPreset}
                 onClick={() =>
@@ -479,7 +479,7 @@ export function InvitationEditor({
           </div>
         </section>
 
-        <section className="grid gap-5 rounded-md border border-ink/10 bg-white p-5 shadow-sm">
+        <section className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Visibility</p>
             <h2 className="mt-2 text-2xl font-semibold text-ink">표시 설정</h2>
@@ -534,7 +534,7 @@ export function InvitationEditor({
           </div>
         </section>
 
-        <section className="grid gap-5 rounded-md border border-ink/10 bg-white p-5 shadow-sm">
+        <section className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Couple</p>
             <h2 className="mt-2 text-2xl font-semibold text-ink">기본 정보</h2>
@@ -555,7 +555,7 @@ export function InvitationEditor({
           <label className="grid gap-2 text-sm font-medium text-ink">
             예식 일시
             <input
-              className="rounded-md border border-ink/15 px-3 py-2"
+              className="rounded-md border border-ink/12 bg-[#fbfcfb] px-4 py-3 text-sm outline-none transition focus:border-sage/60 focus:bg-white"
               onChange={(event) => setForm((current) => ({ ...current, eventDate: event.target.value }))}
               type="datetime-local"
               value={form.eventDate}
@@ -564,7 +564,7 @@ export function InvitationEditor({
           <label className="grid gap-2 text-sm font-medium text-ink">
             소개 문구
             <textarea
-              className="min-h-28 rounded-md border border-ink/15 px-3 py-2"
+              className="min-h-32 resize-y rounded-md border border-ink/12 bg-[#fbfcfb] px-4 py-3 text-sm leading-6 outline-none transition focus:border-sage/60 focus:bg-white"
               onChange={(event) => setForm((current) => ({ ...current, greeting: event.target.value }))}
               value={form.greeting}
             />
@@ -575,7 +575,7 @@ export function InvitationEditor({
           </div>
         </section>
 
-        <section className="grid gap-5 rounded-md border border-ink/10 bg-white p-5 shadow-sm">
+        <section className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Venue</p>
             <h2 className="mt-2 text-2xl font-semibold text-ink">장소 검색과 예식 안내</h2>
@@ -593,10 +593,10 @@ export function InvitationEditor({
           </div>
           {placeSearchError ? <p className="text-sm text-rose">{placeSearchError}</p> : null}
           {isSearchingPlaces ? (
-            <div className="grid gap-2 rounded-md border border-rose/20 bg-rose/5 p-3">
-              <p className="text-xs font-medium text-rose">장소 후보를 찾고 있어요</p>
+            <div className="grid gap-2 rounded-md border border-sage/20 bg-sage/10 p-3">
+              <p className="text-xs font-medium text-sage">장소 후보를 찾고 있어요</p>
               <div className="h-1.5 overflow-hidden rounded-full bg-white">
-                <div className="h-full w-1/3 animate-[soft-loading_1.15s_ease-in-out_infinite] rounded-full bg-rose/70" />
+                <div className="h-full w-1/3 animate-[soft-loading_1.15s_ease-in-out_infinite] rounded-full bg-sage/70" />
               </div>
             </div>
           ) : null}
@@ -618,7 +618,7 @@ export function InvitationEditor({
             </div>
           ) : null}
           {selectedPlace ? (
-            <div className="grid gap-4 rounded-md border border-rose/20 bg-rose/5 p-4 md:grid-cols-[1fr_auto] md:items-center">
+            <div className="grid gap-4 rounded-md border border-sage/20 bg-sage/10 p-4 md:grid-cols-[1fr_auto] md:items-center">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose">
                   Selected Venue
@@ -675,7 +675,7 @@ export function InvitationEditor({
           <Textarea label="기타 안내" value={config.venueGuide.extra} onChange={(value) => updateVenueGuide("extra", value)} />
         </section>
 
-        <section className="grid gap-5 rounded-md border border-ink/10 bg-white p-5 shadow-sm">
+        <section className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Gallery</p>
             <h2 className="mt-2 text-2xl font-semibold text-ink">사진 표현 방식</h2>
@@ -687,10 +687,10 @@ export function InvitationEditor({
               { id: "full", label: "전체보기형" }
             ].map((item) => (
               <button
-                className={`rounded-md border p-4 text-left ${
+                className={`rounded-md border p-4 text-left transition ${
                   config.galleryOptions.displayMode === item.id
-                    ? "border-rose bg-rose/5"
-                    : "border-ink/10"
+                    ? "border-sage bg-sage/10"
+                    : "border-ink/10 bg-[#fbfcfb] hover:border-sage/35"
                 }`}
                 key={item.id}
                 onClick={() =>
@@ -735,7 +735,7 @@ export function InvitationEditor({
           </div>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             {gallery.map((item) => (
-              <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-porcelain" key={item.id}>
+              <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-[#eef1ed]" key={item.id}>
                 <Image alt={item.alt ?? item.fileName} className="object-cover" fill src={item.src} unoptimized />
                 <button
                   className="absolute right-2 top-2 rounded-md bg-white/90 px-2 py-1 text-xs font-medium text-rose"
@@ -751,7 +751,7 @@ export function InvitationEditor({
           </div>
         </section>
 
-        <section className="grid gap-5 rounded-md border border-ink/10 bg-white p-5 shadow-sm">
+        <section className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Copy</p>
@@ -809,7 +809,7 @@ export function InvitationEditor({
             {config.sectionOrder.map((sectionId, index) => (
               <div
                 className={`flex cursor-grab items-center justify-between rounded-md border px-4 py-3 ${
-                  draggingSectionId === sectionId ? "border-rose bg-rose/5" : "border-ink/10 bg-porcelain/60"
+                  draggingSectionId === sectionId ? "border-sage bg-sage/10" : "border-ink/10 bg-[#fbfcfb]"
                 }`}
                 draggable
                 key={sectionId}
@@ -828,7 +828,7 @@ export function InvitationEditor({
           </div>
         </section>
 
-        <section className="grid gap-5 rounded-md border border-ink/10 bg-white p-5 shadow-sm">
+        <section className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Gift</p>
             <h2 className="mt-2 text-2xl font-semibold text-ink">계좌 정보</h2>
@@ -836,23 +836,23 @@ export function InvitationEditor({
           <div className="grid gap-3">
             {config.bankAccounts.map((account) => (
               <article
-                className="grid gap-3 rounded-md border border-ink/10 bg-porcelain/70 p-3 md:grid-cols-[120px_1fr_1fr_1fr_72px]"
+                className="grid gap-3 rounded-md border border-ink/10 bg-[#fbfcfb] p-3 md:grid-cols-[120px_1fr_1fr_1fr_72px]"
                 key={account.id}
               >
                 <input
-                  className="rounded-md border border-ink/15 px-3 py-2"
+                  className="rounded-md border border-ink/12 bg-white px-3 py-2 text-sm outline-none transition focus:border-sage/60"
                   onChange={(event) => updateBankAccount(account.id, { label: event.target.value })}
                   placeholder="구분"
                   value={account.label}
                 />
                 <input
-                  className="rounded-md border border-ink/15 px-3 py-2"
+                  className="rounded-md border border-ink/12 bg-white px-3 py-2 text-sm outline-none transition focus:border-sage/60"
                   onChange={(event) => updateBankAccount(account.id, { bankName: event.target.value })}
                   placeholder="은행명"
                   value={account.bankName}
                 />
                 <input
-                  className="rounded-md border border-ink/15 px-3 py-2"
+                  className="rounded-md border border-ink/12 bg-white px-3 py-2 text-sm outline-none transition focus:border-sage/60"
                   onChange={(event) =>
                     updateBankAccount(account.id, { accountNumber: event.target.value })
                   }
@@ -860,7 +860,7 @@ export function InvitationEditor({
                   value={account.accountNumber}
                 />
                 <input
-                  className="rounded-md border border-ink/15 px-3 py-2"
+                  className="rounded-md border border-ink/12 bg-white px-3 py-2 text-sm outline-none transition focus:border-sage/60"
                   onChange={(event) => updateBankAccount(account.id, { holderName: event.target.value })}
                   placeholder="예금주"
                   value={account.holderName}
@@ -884,26 +884,26 @@ export function InvitationEditor({
           </button>
         </section>
 
-        <section className="sticky bottom-4 z-10 rounded-md border border-ink/10 bg-white p-4 shadow-lg">
-          {state.error ? <p className="mb-3 text-sm text-rose">{state.error}</p> : null}
-          {state.message ? <p className="mb-3 text-sm text-sage">{state.message}</p> : null}
+        <section className="rounded-md border border-ink/10 bg-[#20221f] p-4 text-white shadow-[0_18px_60px_rgba(32,34,31,0.16)] sm:p-5">
+          {state.error ? <p className="mb-3 text-sm text-[#f3b4ba]">{state.error}</p> : null}
+          {state.message ? <p className="mb-3 text-sm text-[#bfd4c6]">{state.message}</p> : null}
           {pending ? (
-            <div className="mb-3 rounded-md border border-rose/20 bg-rose/5 px-3 py-3">
-              <p className="text-xs font-medium text-rose">
+            <div className="mb-3 rounded-md border border-white/10 bg-white/8 px-3 py-3">
+              <p className="text-xs font-medium text-white/78">
                 {submitIntent === "publish" ? "공개 페이지를 준비하고 있어요" : "초안을 저장하고 있어요"}
               </p>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white">
-                <div className="h-full w-1/3 animate-[soft-loading_1.15s_ease-in-out_infinite] rounded-full bg-rose/70" />
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/12">
+                <div className="h-full w-1/3 animate-[soft-loading_1.15s_ease-in-out_infinite] rounded-full bg-[#d9b1a3]" />
               </div>
             </div>
           ) : null}
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="text-sm text-ink/55">
+            <div className="text-sm leading-6 text-white/60">
               {publicUrl ? `공개 링크: ${publicUrl}` : "아직 발행 전입니다. 저장 후 공개를 눌러 주세요."}
             </div>
             <div className="flex gap-2">
               <button
-                className="rounded-md border border-ink/15 px-5 py-3 text-sm font-medium text-ink disabled:opacity-60"
+                className="rounded-md border border-white/18 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/8 disabled:opacity-60"
                 disabled={pending}
                 name="intent"
                 onClick={() => setSubmitIntent("draft")}
@@ -913,7 +913,7 @@ export function InvitationEditor({
                 {pending && submitIntent === "draft" ? "저장 중..." : "초안 저장"}
               </button>
               <button
-                className="rounded-md bg-ink px-5 py-3 text-sm font-medium text-white disabled:opacity-60"
+                className="rounded-md bg-white px-5 py-3 text-sm font-medium text-ink transition hover:bg-[#f4eee9] disabled:opacity-60"
                 disabled={pending}
                 name="intent"
                 onClick={() => setSubmitIntent("publish")}
@@ -927,10 +927,10 @@ export function InvitationEditor({
         </section>
       </div>
 
-      <aside className="min-w-0 xl:h-full xl:overflow-y-auto">
-        <div className="rounded-md border border-ink/10 bg-white p-3 shadow-sm xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none">
+      <aside className="min-w-0 xl:sticky xl:top-6">
+        <div className="rounded-md border border-ink/10 bg-white/95 p-3 shadow-[0_18px_60px_rgba(36,36,36,0.06)] xl:bg-transparent xl:p-0 xl:shadow-none">
           <button
-            className="flex w-full items-center justify-between rounded-md border border-ink/10 px-4 py-3 text-left text-sm font-medium text-ink xl:hidden"
+            className="flex w-full items-center justify-between rounded-md border border-ink/10 bg-[#fbfcfb] px-4 py-3 text-left text-sm font-medium text-ink xl:hidden"
             onClick={() => setIsMobilePreviewOpen((value) => !value)}
             type="button"
           >
@@ -971,7 +971,7 @@ function Input({
     <label className="grid gap-2 text-sm font-medium text-ink">
       {label}
       <input
-        className="rounded-md border border-ink/15 px-3 py-2"
+        className="rounded-md border border-ink/12 bg-[#fbfcfb] px-4 py-3 text-sm outline-none transition focus:border-sage/60 focus:bg-white"
         onChange={(event) => onChange(event.target.value)}
         value={value}
       />
@@ -992,7 +992,7 @@ function Textarea({
     <label className="grid gap-2 text-sm font-medium text-ink">
       {label}
       <textarea
-        className="min-h-24 rounded-md border border-ink/15 px-3 py-2"
+        className="min-h-28 resize-y rounded-md border border-ink/12 bg-[#fbfcfb] px-4 py-3 text-sm leading-6 outline-none transition focus:border-sage/60 focus:bg-white"
         onChange={(event) => onChange(event.target.value)}
         value={value}
       />
@@ -1013,8 +1013,8 @@ function VisibilityToggle({
 }) {
   return (
     <label
-      className={`flex items-center justify-between gap-3 rounded-md border px-4 py-3 text-sm ${
-        disabled ? "border-ink/10 bg-porcelain/70 text-ink/45" : "border-ink/10 bg-white text-ink"
+      className={`flex items-center justify-between gap-3 rounded-md border px-4 py-3 text-sm transition ${
+        disabled ? "border-ink/10 bg-[#eef1ed] text-ink/45" : "border-ink/10 bg-[#fbfcfb] text-ink hover:border-sage/35"
       }`}
     >
       <span className="font-medium">{label}</span>
