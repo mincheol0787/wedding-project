@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { AuthForm } from "@/components/auth/auth-form";
+import { AppTopNav } from "@/components/layout/app-top-nav";
 
 export default function LoginPage() {
   return (
-    <main className="min-h-screen bg-porcelain px-6 py-10">
-      <section className="mx-auto flex max-w-5xl flex-col gap-8 py-10">
+    <>
+      <AppTopNav />
+      <main className="min-h-screen bg-porcelain px-6 py-10">
+        <section className="mx-auto flex max-w-5xl flex-col gap-8 py-10">
         <Link className="text-sm font-medium text-ink/60" href="/">
           Wedding Studio
         </Link>
@@ -18,7 +21,8 @@ export default function LoginPage() {
           </p>
         </div>
         <AuthForm />
-      </section>
-    </main>
+        </section>
+      </main>
+    </>
   );
 }

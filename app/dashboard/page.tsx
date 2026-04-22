@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { SignOutButton } from "@/components/auth/sign-out-button";
 import { ProjectCard } from "@/components/dashboard/project-card";
 import { FastLink } from "@/components/ui/fast-link";
 import { getWeddingProjectsByUserId } from "@/server/projects/service";
@@ -34,7 +33,6 @@ export default async function DashboardPage() {
             >
               새 프로젝트 만들기
             </FastLink>
-            <SignOutButton />
           </div>
         </header>
 

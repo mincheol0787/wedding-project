@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { InvitationView, type InvitationViewData } from "@/components/invitation/shared/invitation-view";
+import { AppTopNav } from "@/components/layout/app-top-nav";
 import { createDefaultInvitationConfig } from "@/lib/invitation/types";
 import { getPublishedInvitationBySlug } from "@/server/invitations/public-query";
 
@@ -16,7 +17,12 @@ export default async function InvitationPage({ params }: InvitationPageProps) {
   const slug = decodeURIComponent(rawSlug).trim();
 
   if (slug === "sample") {
-    return <InvitationView invitation={buildSampleInvitation()} />;
+    return (
+      <>
+        <AppTopNav />
+        <InvitationView invitation={buildSampleInvitation()} />
+      </>
+    );
   }
 
   const invitation = await getPublishedInvitationBySlug(slug);

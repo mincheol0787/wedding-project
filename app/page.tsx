@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { AppTopNav } from "@/components/layout/app-top-nav";
 
 const highlights = [
   {
@@ -18,8 +19,10 @@ const highlights = [
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-[#f7f2ed]">
-      <section className="relative min-h-screen overflow-hidden">
+    <>
+      <AppTopNav />
+      <main className="min-h-screen bg-[#f7f2ed]">
+      <section className="relative min-h-[calc(100vh-72px)] overflow-hidden">
         <Image
           alt="웨딩 플라워 테이블"
           className="object-cover"
@@ -29,7 +32,7 @@ export default function HomePage() {
           src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80"
         />
         <div className="absolute inset-0 bg-black/25" />
-        <div className="relative mx-auto flex min-h-screen max-w-6xl items-end px-6 pb-14 pt-20">
+        <div className="relative mx-auto flex min-h-[calc(100vh-72px)] max-w-6xl items-end px-6 pb-14 pt-20">
           <div className="max-w-3xl text-white">
             <p className="text-sm font-semibold uppercase tracking-[0.28em] text-white/80">
               Wedding Studio
@@ -120,6 +123,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   );
 }
