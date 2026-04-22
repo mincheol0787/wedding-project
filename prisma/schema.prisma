@@ -97,6 +97,13 @@ enum GuestSide {
   UNKNOWN
 }
 
+enum SupportInquiryStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -110,6 +117,7 @@ model User {
   memberships   ProjectMember[]
   mediaAssets   MediaAsset[]
   renderJobs    RenderJob[]
+  supportInquiries SupportInquiry[]
   accounts      Account[]
   sessions      Session[]
 
@@ -489,5 +497,27 @@ model Guestbook {
 
   @@index([invitationProjectId, isHidden])
   @@index([createdAt])
+  @@index([deletedAt])
+}
+
+model SupportInquiry {
+  id          String               @id @default(cuid())
+  userId      String?
+  name        String
+  email       String
+  category    String
+  subject     String
+  message     String               @db.Text
+  status      SupportInquiryStatus @default(OPEN)
+  adminNote   String?              @db.Text
+
+  user        User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  deletedAt   DateTime?
+
+  @@index([userId])
+  @@index([status, createdAt])
   @@index([deletedAt])
 }

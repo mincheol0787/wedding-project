@@ -39,6 +39,7 @@ export function InvitationLivePreview({
   const template =
     invitationTemplates.find((item) => item.id === config.templateId) ?? invitationTemplates[0];
   const previewGallery = gallery.slice(0, 3);
+  const coverImage = gallery[0];
   const [draggingSectionId, setDraggingSectionId] = useState<InvitationSectionId | null>(null);
 
   function wrapPreviewSection(sectionId: InvitationSectionId, children: ReactNode) {
@@ -83,21 +84,49 @@ export function InvitationLivePreview({
       </div>
 
       <div
-        className={`mx-auto max-w-[314px] overflow-hidden rounded-md border border-white/10 bg-white text-ink shadow-[0_22px_70px_rgba(0,0,0,0.25)] ${getFontClass(
+        className={`mx-auto max-w-[430px] overflow-hidden rounded-md border border-white/10 bg-white text-ink shadow-[0_22px_70px_rgba(0,0,0,0.25)] ${getFontClass(
           config.design.fontPreset
         )}`}
       >
-        <div className={`px-5 py-7 text-center ${template.accentClass}`}>
-          <p className="text-[11px] uppercase tracking-[0.28em] text-rose">
-            {config.copy.heroEyebrow}
-          </p>
-          <h3 className="mt-4 text-2xl font-semibold text-ink">
-            {groomName || "신랑"}
-            <span className="mx-2 text-rose">&</span>
-            {brideName || "신부"}
-          </h3>
-          <p className="mt-3 text-xs text-ink/60">{formatPreviewDate(eventDate)}</p>
-          {venueName ? <p className="mt-2 text-xs text-ink/55">{venueName}</p> : null}
+        <div className={`relative min-h-[520px] overflow-hidden text-center ${coverImage ? "" : template.accentClass}`}>
+          {coverImage ? (
+            <Image
+              alt={coverImage.alt ?? coverImage.fileName}
+              className={config.design.autoFocus ? "object-cover" : "object-contain"}
+              fill
+              priority
+              src={coverImage.src}
+              style={{
+                objectPosition: config.design.autoFocus ? "center 42%" : "center center"
+              }}
+              unoptimized
+            />
+          ) : null}
+          {coverImage ? <div className="absolute inset-0 bg-black/18" /> : null}
+          <div
+            className="absolute inset-x-6 top-1/2"
+            style={{
+              transform: `translateY(calc(-50% + ${config.design.heroOffsetY}px))`,
+              transitionDuration: `${config.design.heroMotionSpeed / 2}s`
+            }}
+          >
+            <p
+              className="text-[12px] uppercase tracking-[0.28em]"
+              style={{ color: config.design.heroAccentColor }}
+            >
+              {config.copy.heroEyebrow}
+            </p>
+            <h3
+              className="mt-4 text-5xl font-semibold leading-[0.95]"
+              style={{ color: config.design.heroTextColor }}
+            >
+              {groomName || "신랑"}
+              <span className="mx-2">&</span>
+              {brideName || "신부"}
+            </h3>
+            <p className="mt-5 text-sm text-white/84">{formatPreviewDate(eventDate)}</p>
+            {venueName ? <p className="mt-2 text-xs text-white/74">{venueName}</p> : null}
+          </div>
         </div>
 
         {config.sectionOrder.map((sectionId) => {

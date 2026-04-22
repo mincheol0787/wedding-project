@@ -10,10 +10,13 @@ export async function getAdminDashboardData() {
     failedRenderJobCount,
     templateCount,
     activeTemplateCount,
+    supportInquiryCount,
+    openSupportInquiryCount,
     users,
     projects,
     renderJobs,
     templates,
+    supportInquiries,
     renderJobsByStatus
   ] = await prisma.$transaction([
     prisma.user.count({
@@ -57,6 +60,17 @@ export async function getAdminDashboardData() {
     prisma.template.count({
       where: {
         isActive: true,
+        deletedAt: null
+      }
+    }),
+    prisma.supportInquiry.count({
+      where: {
+        deletedAt: null
+      }
+    }),
+    prisma.supportInquiry.count({
+      where: {
+        status: "OPEN",
         deletedAt: null
       }
     }),
@@ -182,6 +196,25 @@ export async function getAdminDashboardData() {
         createdAt: true
       }
     }),
+    prisma.supportInquiry.findMany({
+      where: {
+        deletedAt: null
+      },
+      orderBy: {
+        createdAt: "desc"
+      },
+      take: 30,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        category: true,
+        subject: true,
+        message: true,
+        status: true,
+        createdAt: true
+      }
+    }),
     prisma.renderJob.groupBy({
       by: ["status"],
       where: {
@@ -203,6 +236,8 @@ export async function getAdminDashboardData() {
       failedRenderJobCount,
       templateCount,
       activeTemplateCount,
+      supportInquiryCount,
+      openSupportInquiryCount,
       renderJobsByStatus: renderJobsByStatus.map((item) => ({
         status: item.status,
         count: item._count._all
@@ -211,6 +246,7 @@ export async function getAdminDashboardData() {
     users,
     projects,
     renderJobs,
-    templates
+    templates,
+    supportInquiries
   };
 }

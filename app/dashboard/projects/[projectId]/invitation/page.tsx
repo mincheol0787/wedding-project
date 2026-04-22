@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { InvitationEditor } from "@/components/invitation/editor/invitation-editor";
+import { AppTopNav } from "@/components/layout/app-top-nav";
 import { env } from "@/lib/env";
 import { getInvitationEditorProject } from "@/server/invitations/service";
 
@@ -30,7 +31,13 @@ export default async function InvitationEditorPage({ params }: InvitationEditorP
   const previewUrl = `/dashboard/projects/${project.id}/invitation/preview`;
 
   return (
-    <main className="min-h-screen bg-[#f5f7f4] px-4 py-8 sm:px-6 lg:py-10">
+    <>
+      <AppTopNav
+        currentProjectId={project.id}
+        isAdmin={session.user.role === "ADMIN"}
+        userName={session.user.name ?? session.user.email}
+      />
+      <main className="min-h-screen bg-[#f5f7f4] px-4 py-8 sm:px-6 lg:py-10">
       <section className="mx-auto max-w-7xl">
         <header className="mb-8 grid gap-6 rounded-md border border-ink/10 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] md:grid-cols-[1fr_auto] md:items-end lg:px-7 lg:py-6">
           <div>
@@ -82,7 +89,8 @@ export default async function InvitationEditorPage({ params }: InvitationEditorP
           publicUrl={publicUrl}
         />
       </section>
-    </main>
+      </main>
+    </>
   );
 }
 

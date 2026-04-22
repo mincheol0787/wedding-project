@@ -3,12 +3,14 @@
 import { useTransition } from "react";
 import { signOut } from "next-auth/react";
 
-export function SignOutButton() {
+export function SignOutButton({ compact = false }: { compact?: boolean }) {
   const [pending, startTransition] = useTransition();
 
   return (
     <button
-      className="rounded-md border border-ink/15 px-5 py-3 text-sm font-medium text-ink disabled:opacity-60"
+      className={`rounded-md border border-ink/15 text-sm font-medium text-ink transition hover:bg-white disabled:opacity-60 ${
+        compact ? "px-3 py-2" : "px-5 py-3"
+      }`}
       disabled={pending}
       onClick={() =>
         startTransition(async () => {

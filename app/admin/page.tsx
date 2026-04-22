@@ -33,7 +33,7 @@ export default async function AdminPage() {
           </div>
         </header>
 
-        <section className="mt-8 grid gap-4 md:grid-cols-4">
+        <section className="mt-8 grid gap-4 md:grid-cols-5">
           <StatCard label="사용자" value={data.stats.userCount} sub={`${data.stats.adminCount} admin`} />
           <StatCard
             label="프로젝트"
@@ -49,6 +49,11 @@ export default async function AdminPage() {
             label="템플릿"
             value={data.stats.templateCount}
             sub={`${data.stats.activeTemplateCount} active`}
+          />
+          <StatCard
+            label="고객 문의"
+            value={data.stats.supportInquiryCount}
+            sub={`${data.stats.openSupportInquiryCount} open`}
           />
         </section>
 
@@ -69,6 +74,31 @@ export default async function AdminPage() {
             )}
           </div>
         </section>
+
+        <AdminSection title="고객센터 문의">
+          <div className="grid gap-3">
+            {data.supportInquiries.map((inquiry) => (
+              <article className="rounded-md border border-ink/10 bg-porcelain/60 p-4" key={inquiry.id}>
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <p className="text-lg font-semibold text-ink">{inquiry.subject}</p>
+                    <p className="mt-1 text-sm text-ink/55">
+                      {inquiry.name} · {inquiry.email} · {inquiry.category}
+                    </p>
+                  </div>
+                  <span className="w-fit rounded-md bg-white px-3 py-1 text-xs font-medium text-rose">
+                    {inquiry.status}
+                  </span>
+                </div>
+                <p className="mt-3 line-clamp-3 whitespace-pre-wrap text-sm leading-6 text-ink/65">
+                  {inquiry.message}
+                </p>
+                <p className="mt-3 text-xs text-ink/45">{formatDate(inquiry.createdAt)}</p>
+              </article>
+            ))}
+            {data.supportInquiries.length === 0 ? <EmptyText text="접수된 문의가 없습니다." /> : null}
+          </div>
+        </AdminSection>
 
         <AdminSection title="사용자 목록">
           <div className="overflow-x-auto">

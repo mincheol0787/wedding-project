@@ -97,7 +97,12 @@ export const invitationGalleryOptionsSchema = z.object({
 });
 
 export const invitationDesignSchema = z.object({
-  fontPreset: z.enum(invitationFontPresets).default("serif")
+  fontPreset: z.enum(invitationFontPresets).default("serif"),
+  heroAccentColor: z.string().default("#fff0d0"),
+  heroTextColor: z.string().default("#2b2b2b"),
+  heroOffsetY: z.number().min(-40).max(40).default(0),
+  heroMotionSpeed: z.number().min(0.5).max(8).default(3.7),
+  autoFocus: z.boolean().default(true)
 });
 
 export const invitationPlaceSearchSchema = z.object({
@@ -177,9 +182,9 @@ export function createDefaultInvitationConfig(
     copy: invitationCopySchema.parse({}),
     galleryOptions: invitationGalleryOptionsSchema.parse({}),
     venueGuide: invitationVenueGuideSchema.parse({}),
-    design: {
+    design: invitationDesignSchema.parse({
       fontPreset: getDefaultFontPreset(templateId)
-    },
+    }),
     placeSearch: invitationPlaceSearchSchema.parse({}),
     visibility: invitationVisibilitySchema.parse({}),
     bankAccounts: []
@@ -206,6 +211,10 @@ export function parseInvitationConfig(value: unknown): InvitationConfig {
     ...createDefaultInvitationConfig(parsed.templateId),
     ...parsed,
     design: {
+      ...invitationDesignSchema.parse({
+        fontPreset: getDefaultFontPreset(parsed.templateId)
+      }),
+      ...parsed.design,
       fontPreset: parsed.design?.fontPreset ?? getDefaultFontPreset(parsed.templateId)
     },
     visibility: {

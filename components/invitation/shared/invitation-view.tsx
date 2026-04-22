@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { ReactNode } from "react";
 import { CopyAccountButton } from "@/components/invitation/public/copy-account-button";
 import { GuestbookForm, RsvpForm } from "@/components/invitation/public/public-forms";
@@ -58,31 +59,60 @@ export function InvitationView({ invitation }: InvitationViewProps) {
   const sections = invitation.config.sectionOrder.filter((sectionId) =>
     shouldRenderSection(sectionId, invitation)
   );
+  const coverImage = invitation.gallery[0];
 
   return (
     <main className={`min-h-screen bg-[#f7f2ed] px-3 py-4 text-ink sm:px-4 ${fontClass}`}>
       <article className="mx-auto max-w-md overflow-hidden rounded-md border border-black/5 bg-white shadow-[0_20px_70px_rgba(36,36,36,0.08)]">
-        <header className="border-b border-[#f1e7df] bg-[#fffaf6] px-6 pb-12 pt-14 text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-rose">
-            {copy.heroEyebrow}
-          </p>
-          <h1 className="mt-6 text-4xl font-semibold leading-tight text-ink">
-            {invitation.groomName}
-            <span className="mx-3 text-rose">&</span>
-            {invitation.brideName}
-          </h1>
-          <p className="mt-4 text-sm leading-7 text-ink/60">{eventDate}</p>
-          {(invitation.venueName || invitation.venueAddress) && (
-            <div className="mt-4 text-sm leading-7 text-ink/62">
-              {invitation.venueName ? <p className="font-medium text-ink">{invitation.venueName}</p> : null}
-              {invitation.venueAddress ? <p>{invitation.venueAddress}</p> : null}
-            </div>
-          )}
+        <header className={`relative min-h-[560px] overflow-hidden border-b border-[#f1e7df] text-center ${coverImage ? "" : "bg-[#fffaf6]"}`}>
+          {coverImage ? (
+            <Image
+              alt={coverImage.alt ?? coverImage.fileName}
+              className={invitation.config.design.autoFocus ? "object-cover" : "object-contain"}
+              fill
+              priority
+              src={coverImage.src}
+              style={{
+                objectPosition: invitation.config.design.autoFocus ? "center 42%" : "center center"
+              }}
+              unoptimized
+            />
+          ) : null}
+          {coverImage ? <div className="absolute inset-0 bg-black/18" /> : null}
+          <div
+            className="absolute inset-x-6 top-1/2"
+            style={{
+              transform: `translateY(calc(-50% + ${invitation.config.design.heroOffsetY}px))`,
+              transitionDuration: `${invitation.config.design.heroMotionSpeed / 2}s`
+            }}
+          >
+            <p
+              className="text-[12px] font-semibold uppercase tracking-[0.28em]"
+              style={{ color: invitation.config.design.heroAccentColor }}
+            >
+              {copy.heroEyebrow}
+            </p>
+            <h1
+              className="mt-6 text-5xl font-semibold leading-[0.95]"
+              style={{ color: invitation.config.design.heroTextColor }}
+            >
+              {invitation.groomName}
+              <span className="mx-3">&</span>
+              {invitation.brideName}
+            </h1>
+            <p className={`mt-5 text-sm leading-7 ${coverImage ? "text-white/84" : "text-ink/60"}`}>{eventDate}</p>
+            {(invitation.venueName || invitation.venueAddress) && (
+              <div className={`mt-3 text-sm leading-7 ${coverImage ? "text-white/78" : "text-ink/62"}`}>
+                {invitation.venueName ? <p className="font-medium">{invitation.venueName}</p> : null}
+                {invitation.venueAddress ? <p>{invitation.venueAddress}</p> : null}
+              </div>
+            )}
+          </div>
           {(invitation.groomFatherName ||
             invitation.groomMotherName ||
             invitation.brideFatherName ||
             invitation.brideMotherName) && (
-            <div className="mt-8 rounded-md border border-[#efe4dd] bg-white px-4 py-4 text-sm leading-7 text-ink/70">
+            <div className="absolute inset-x-6 bottom-8 rounded-md border border-white/30 bg-white/86 px-4 py-4 text-sm leading-7 text-ink/70 backdrop-blur">
               <p>
                 {renderParents(invitation.groomFatherName, invitation.groomMotherName)}의 아들{" "}
                 <span className="font-semibold text-ink">{invitation.groomName}</span>
@@ -94,7 +124,7 @@ export function InvitationView({ invitation }: InvitationViewProps) {
             </div>
           )}
           {invitation.mode === "preview" ? (
-            <div className="mt-6 rounded-md border border-dashed border-rose/30 bg-rose/5 px-4 py-3 text-sm text-rose">
+            <div className="absolute left-6 right-6 top-6 rounded-md border border-dashed border-white/40 bg-white/80 px-4 py-3 text-sm text-rose backdrop-blur">
               미리보기 화면입니다. 발행 전이라도 편집 결과를 같은 레이아웃으로 확인할 수 있어요.
             </div>
           ) : null}

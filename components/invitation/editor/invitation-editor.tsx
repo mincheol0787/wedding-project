@@ -93,6 +93,8 @@ export function InvitationEditor({
     ...createDefaultInvitationConfig(defaults.config.templateId),
     ...defaults.config,
     design: {
+      ...createDefaultInvitationConfig(defaults.config.templateId).design,
+      ...defaults.config.design,
       fontPreset:
         defaults.config.design?.fontPreset ?? getDefaultFontPreset(defaults.config.templateId)
     }
@@ -181,6 +183,7 @@ export function InvitationEditor({
       templateId,
       sectionOrder: getDefaultSectionOrder(templateId),
       design: {
+        ...current.design,
         fontPreset: getDefaultFontPreset(templateId)
       }
     }));
@@ -220,6 +223,19 @@ export function InvitationEditor({
       ...current,
       galleryOptions: {
         ...current.galleryOptions,
+        [key]: value
+      }
+    }));
+  }
+
+  function updateDesign<K extends keyof InvitationConfig["design"]>(
+    key: K,
+    value: InvitationConfig["design"][K]
+  ) {
+    setConfig((current) => ({
+      ...current,
+      design: {
+        ...current.design,
         [key]: value
       }
     }));
@@ -352,7 +368,7 @@ export function InvitationEditor({
       : null;
 
   return (
-    <form action={formAction} className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px] xl:items-start 2xl:grid-cols-[minmax(0,1fr)_420px]">
+    <form action={formAction} className="grid gap-6 xl:grid-cols-[minmax(380px,0.78fr)_minmax(0,1.22fr)] xl:items-start">
       <input name="galleryJson" type="hidden" value={galleryJson} />
       <input name="configJson" type="hidden" value={configJson} />
       <input name="title" type="hidden" value={form.title} />
@@ -373,7 +389,48 @@ export function InvitationEditor({
       <input name="mapLat" type="hidden" value={form.mapLat} />
       <input name="mapLng" type="hidden" value={form.mapLng} />
 
+      <aside className="min-w-0 xl:sticky xl:top-20">
+        <div className="rounded-md border border-ink/10 bg-white/95 p-3 shadow-[0_18px_60px_rgba(36,36,36,0.06)]">
+          <button
+            className="flex w-full items-center justify-between rounded-md border border-ink/10 bg-[#fbfcfb] px-4 py-3 text-left text-sm font-medium text-ink xl:hidden"
+            onClick={() => setIsMobilePreviewOpen((value) => !value)}
+            type="button"
+          >
+            모바일 미리보기
+            <span className="text-rose">{isMobilePreviewOpen ? "접기" : "열기"}</span>
+          </button>
+          <div className={`${isMobilePreviewOpen ? "mt-3 block" : "hidden"} xl:mt-0 xl:block`}>
+            <InvitationLivePreview
+              brideName={form.brideName}
+              contactPhoneBride={form.contactPhoneBride}
+              contactPhoneGroom={form.contactPhoneGroom}
+              config={config}
+              eventDate={form.eventDate}
+              gallery={gallery}
+              greeting={form.greeting}
+              groomName={form.groomName}
+              onMoveSection={moveSection}
+              title={form.title}
+              venueName={form.venueName}
+            />
+          </div>
+        </div>
+      </aside>
+
       <div className="min-w-0 grid gap-5">
+        <div className="rounded-md border border-ink/10 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(36,36,36,0.05)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sage">Editor</p>
+          <div className="mt-2 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold text-ink">청첩장 편집기</h2>
+              <p className="mt-1 text-sm text-ink/55">오른쪽에서 입력하고 왼쪽에서 바로 확인합니다.</p>
+            </div>
+            <span className="w-fit rounded-md bg-[#f4f7f2] px-3 py-2 text-xs font-medium text-ink/60">
+              {config.sectionOrder.length}개 섹션 구성 중
+            </span>
+          </div>
+        </div>
+
         <section className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
@@ -454,6 +511,7 @@ export function InvitationEditor({
                   setConfig((current) => ({
                     ...current,
                     design: {
+                      ...current.design,
                       fontPreset
                     }
                   }))
@@ -476,6 +534,87 @@ export function InvitationEditor({
                 </p>
               </button>
             ))}
+          </div>
+        </section>
+
+        <section className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Cover</p>
+            <h2 className="mt-2 text-2xl font-semibold text-ink">커버 연출</h2>
+            <p className="mt-2 text-sm leading-6 text-ink/60">
+              첫 사진을 중심으로 레터링 위치와 색감을 조정합니다. 왼쪽 미리보기에 바로 반영됩니다.
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Input
+              label="레터링 문구"
+              value={config.copy.heroEyebrow}
+              onChange={(value) => updateCopy("heroEyebrow", value)}
+            />
+            <label className="grid gap-2 text-sm font-medium text-ink">
+              레터링 색상
+              <div className="grid grid-cols-[1fr_64px] overflow-hidden rounded-md border border-ink/12 bg-[#fbfcfb]">
+                <input
+                  className="bg-transparent px-4 py-3 text-sm outline-none"
+                  onChange={(event) => updateDesign("heroAccentColor", event.target.value)}
+                  value={config.design.heroAccentColor}
+                />
+                <input
+                  aria-label="레터링 색상 선택"
+                  className="h-full min-h-12 w-full cursor-pointer border-l border-ink/10 bg-transparent"
+                  onChange={(event) => updateDesign("heroAccentColor", event.target.value)}
+                  type="color"
+                  value={config.design.heroAccentColor}
+                />
+              </div>
+            </label>
+            <label className="grid gap-2 text-sm font-medium text-ink">
+              메인 텍스트 색상
+              <div className="grid grid-cols-[1fr_64px] overflow-hidden rounded-md border border-ink/12 bg-[#fbfcfb]">
+                <input
+                  className="bg-transparent px-4 py-3 text-sm outline-none"
+                  onChange={(event) => updateDesign("heroTextColor", event.target.value)}
+                  value={config.design.heroTextColor}
+                />
+                <input
+                  aria-label="메인 텍스트 색상 선택"
+                  className="h-full min-h-12 w-full cursor-pointer border-l border-ink/10 bg-transparent"
+                  onChange={(event) => updateDesign("heroTextColor", event.target.value)}
+                  type="color"
+                  value={config.design.heroTextColor}
+                />
+              </div>
+            </label>
+            <VisibilityToggle
+              checked={config.design.autoFocus}
+              label="자동 포커스"
+              onChange={(value) => updateDesign("autoFocus", value)}
+            />
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="grid gap-2 text-sm font-medium text-ink">
+              레터링 위치
+              <input
+                className="accent-sage"
+                max={40}
+                min={-40}
+                onChange={(event) => updateDesign("heroOffsetY", Number(event.target.value))}
+                type="range"
+                value={config.design.heroOffsetY}
+              />
+            </label>
+            <label className="grid gap-2 text-sm font-medium text-ink">
+              레터링 속도
+              <input
+                className="accent-sage"
+                max={8}
+                min={0.5}
+                onChange={(event) => updateDesign("heroMotionSpeed", Number(event.target.value))}
+                step={0.1}
+                type="range"
+                value={config.design.heroMotionSpeed}
+              />
+            </label>
           </div>
         </section>
 
@@ -927,33 +1066,6 @@ export function InvitationEditor({
         </section>
       </div>
 
-      <aside className="min-w-0 xl:sticky xl:top-6">
-        <div className="rounded-md border border-ink/10 bg-white/95 p-3 shadow-[0_18px_60px_rgba(36,36,36,0.06)] xl:bg-transparent xl:p-0 xl:shadow-none">
-          <button
-            className="flex w-full items-center justify-between rounded-md border border-ink/10 bg-[#fbfcfb] px-4 py-3 text-left text-sm font-medium text-ink xl:hidden"
-            onClick={() => setIsMobilePreviewOpen((value) => !value)}
-            type="button"
-          >
-            모바일 미리보기
-            <span className="text-rose">{isMobilePreviewOpen ? "접기" : "열기"}</span>
-          </button>
-          <div className={`${isMobilePreviewOpen ? "mt-3 block" : "hidden"} xl:mt-0 xl:block`}>
-            <InvitationLivePreview
-              brideName={form.brideName}
-              contactPhoneBride={form.contactPhoneBride}
-              contactPhoneGroom={form.contactPhoneGroom}
-              config={config}
-              eventDate={form.eventDate}
-              gallery={gallery}
-              greeting={form.greeting}
-              groomName={form.groomName}
-              onMoveSection={moveSection}
-              title={form.title}
-              venueName={form.venueName}
-            />
-          </div>
-        </div>
-      </aside>
     </form>
   );
 }
