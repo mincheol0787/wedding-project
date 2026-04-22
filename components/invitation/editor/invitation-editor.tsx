@@ -46,6 +46,8 @@ type InvitationEditorProps = {
     groomMotherName: string;
     brideFatherName: string;
     brideMotherName: string;
+    contactPhoneGroom: string;
+    contactPhoneBride: string;
     eventDate: string;
     venueName: string;
     venueAddress: string;
@@ -75,6 +77,8 @@ export function InvitationEditor({
     groomMotherName: defaults.groomMotherName,
     brideFatherName: defaults.brideFatherName,
     brideMotherName: defaults.brideMotherName,
+    contactPhoneGroom: defaults.contactPhoneGroom,
+    contactPhoneBride: defaults.contactPhoneBride,
     eventDate: defaults.eventDate,
     venueName: defaults.venueName,
     venueAddress: defaults.venueAddress,
@@ -221,6 +225,19 @@ export function InvitationEditor({
     }));
   }
 
+  function updateVisibility<K extends keyof InvitationConfig["visibility"]>(
+    key: K,
+    value: InvitationConfig["visibility"][K]
+  ) {
+    setConfig((current) => ({
+      ...current,
+      visibility: {
+        ...current.visibility,
+        [key]: value
+      }
+    }));
+  }
+
   function addBankAccount() {
     setConfig((current) => ({
       ...current,
@@ -335,7 +352,7 @@ export function InvitationEditor({
       : null;
 
   return (
-    <form action={formAction} className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_390px] 2xl:grid-cols-[minmax(0,1fr)_430px]">
+    <form action={formAction} className="grid gap-8 xl:h-[calc(100vh-5rem)] xl:grid-cols-[minmax(0,1fr)_390px] xl:overflow-hidden 2xl:grid-cols-[minmax(0,1fr)_430px]">
       <input name="galleryJson" type="hidden" value={galleryJson} />
       <input name="configJson" type="hidden" value={configJson} />
       <input name="title" type="hidden" value={form.title} />
@@ -345,6 +362,8 @@ export function InvitationEditor({
       <input name="groomMotherName" type="hidden" value={form.groomMotherName} />
       <input name="brideFatherName" type="hidden" value={form.brideFatherName} />
       <input name="brideMotherName" type="hidden" value={form.brideMotherName} />
+      <input name="contactPhoneGroom" type="hidden" value={form.contactPhoneGroom} />
+      <input name="contactPhoneBride" type="hidden" value={form.contactPhoneBride} />
       <input name="eventDate" type="hidden" value={form.eventDate} />
       <input name="greeting" type="hidden" value={form.greeting} />
       <input name="venueName" type="hidden" value={form.venueName} />
@@ -354,7 +373,7 @@ export function InvitationEditor({
       <input name="mapLat" type="hidden" value={form.mapLat} />
       <input name="mapLng" type="hidden" value={form.mapLng} />
 
-      <div className="min-w-0 grid gap-8">
+      <div className="min-w-0 grid gap-8 xl:overflow-y-auto xl:pr-2">
         <section className="grid gap-4 rounded-md border border-ink/10 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
@@ -462,6 +481,61 @@ export function InvitationEditor({
 
         <section className="grid gap-5 rounded-md border border-ink/10 bg-white p-5 shadow-sm">
           <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Visibility</p>
+            <h2 className="mt-2 text-2xl font-semibold text-ink">표시 설정</h2>
+            <p className="mt-2 text-sm leading-6 text-ink/60">
+              기본 정보는 항상 표시됩니다. 나머지 항목은 미리보기와 공개 페이지에서 바로 숨기거나 다시 보일 수 있습니다.
+            </p>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <VisibilityToggle checked disabled label="신랑/신부 이름" />
+            <VisibilityToggle checked disabled label="예식 일시" />
+            <VisibilityToggle checked disabled label="예식 장소" />
+            <VisibilityToggle
+              checked={config.visibility.greeting}
+              label="인사말"
+              onChange={(value) => updateVisibility("greeting", value)}
+            />
+            <VisibilityToggle
+              checked={config.visibility.gallery}
+              label="사진 섹션"
+              onChange={(value) => updateVisibility("gallery", value)}
+            />
+            <VisibilityToggle
+              checked={config.visibility.location}
+              label="오시는 길"
+              onChange={(value) => updateVisibility("location", value)}
+            />
+            <VisibilityToggle
+              checked={config.visibility.venueGuide}
+              label="홀/층/주차/식사 안내"
+              onChange={(value) => updateVisibility("venueGuide", value)}
+            />
+            <VisibilityToggle
+              checked={config.visibility.gift}
+              label="마음 전하실 곳"
+              onChange={(value) => updateVisibility("gift", value)}
+            />
+            <VisibilityToggle
+              checked={config.visibility.rsvp}
+              label="참석 여부"
+              onChange={(value) => updateVisibility("rsvp", value)}
+            />
+            <VisibilityToggle
+              checked={config.visibility.guestbook}
+              label="방명록"
+              onChange={(value) => updateVisibility("guestbook", value)}
+            />
+            <VisibilityToggle
+              checked={config.visibility.contacts}
+              label="연락처"
+              onChange={(value) => updateVisibility("contacts", value)}
+            />
+          </div>
+        </section>
+
+        <section className="grid gap-5 rounded-md border border-ink/10 bg-white p-5 shadow-sm">
+          <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Couple</p>
             <h2 className="mt-2 text-2xl font-semibold text-ink">기본 정보</h2>
           </div>
@@ -495,6 +569,10 @@ export function InvitationEditor({
               value={form.greeting}
             />
           </label>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Input label="신랑 연락처" value={form.contactPhoneGroom} onChange={(value) => setForm((current) => ({ ...current, contactPhoneGroom: value }))} />
+            <Input label="신부 연락처" value={form.contactPhoneBride} onChange={(value) => setForm((current) => ({ ...current, contactPhoneBride: value }))} />
+          </div>
         </section>
 
         <section className="grid gap-5 rounded-md border border-ink/10 bg-white p-5 shadow-sm">
@@ -849,7 +927,7 @@ export function InvitationEditor({
         </section>
       </div>
 
-      <aside className="min-w-0 xl:sticky xl:top-10 xl:self-start">
+      <aside className="min-w-0 xl:h-full xl:overflow-y-auto">
         <div className="rounded-md border border-ink/10 bg-white p-3 shadow-sm xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none">
           <button
             className="flex w-full items-center justify-between rounded-md border border-ink/10 px-4 py-3 text-left text-sm font-medium text-ink xl:hidden"
@@ -862,6 +940,8 @@ export function InvitationEditor({
           <div className={`${isMobilePreviewOpen ? "mt-3 block" : "hidden"} xl:mt-0 xl:block`}>
             <InvitationLivePreview
               brideName={form.brideName}
+              contactPhoneBride={form.contactPhoneBride}
+              contactPhoneGroom={form.contactPhoneGroom}
               config={config}
               eventDate={form.eventDate}
               gallery={gallery}
@@ -915,6 +995,35 @@ function Textarea({
         className="min-h-24 rounded-md border border-ink/15 px-3 py-2"
         onChange={(event) => onChange(event.target.value)}
         value={value}
+      />
+    </label>
+  );
+}
+
+function VisibilityToggle({
+  checked,
+  disabled,
+  label,
+  onChange
+}: {
+  checked: boolean;
+  disabled?: boolean;
+  label: string;
+  onChange?: (value: boolean) => void;
+}) {
+  return (
+    <label
+      className={`flex items-center justify-between gap-3 rounded-md border px-4 py-3 text-sm ${
+        disabled ? "border-ink/10 bg-porcelain/70 text-ink/45" : "border-ink/10 bg-white text-ink"
+      }`}
+    >
+      <span className="font-medium">{label}</span>
+      <input
+        checked={checked}
+        className="h-4 w-4 rounded border-ink/20"
+        disabled={disabled}
+        onChange={(event) => onChange?.(event.target.checked)}
+        type="checkbox"
       />
     </label>
   );

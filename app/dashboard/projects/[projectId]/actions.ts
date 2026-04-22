@@ -93,7 +93,6 @@ export async function createProjectScheduleEventAction(
     isAllDay: parsed.data.isAllDay
   });
 
-  revalidatePath("/dashboard");
   revalidatePath(`/dashboard/projects/${projectId}`);
 
   return {
@@ -127,7 +126,6 @@ export async function toggleProjectScheduleEventAction(
     parsed.data.isCompleted
   );
 
-  revalidatePath("/dashboard");
   revalidatePath(`/dashboard/projects/${projectId}`);
 }
 
@@ -185,7 +183,6 @@ export async function updateProjectScheduleEventAction(
     };
   }
 
-  revalidatePath("/dashboard");
   revalidatePath(`/dashboard/projects/${projectId}`);
 
   return {
@@ -222,7 +219,6 @@ export async function deleteProjectScheduleEventAction(
     };
   }
 
-  revalidatePath("/dashboard");
   revalidatePath(`/dashboard/projects/${projectId}`);
 
   return {

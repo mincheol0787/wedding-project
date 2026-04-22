@@ -19,6 +19,8 @@ export type InvitationViewData = {
   groomMotherName?: string | null;
   brideFatherName?: string | null;
   brideMotherName?: string | null;
+  contactPhoneGroom?: string | null;
+  contactPhoneBride?: string | null;
   eventDate?: Date | null;
   greeting?: string | null;
   venueName?: string | null;
@@ -70,6 +72,12 @@ export function InvitationView({ invitation }: InvitationViewProps) {
             {invitation.brideName}
           </h1>
           <p className="mt-4 text-sm leading-7 text-ink/60">{eventDate}</p>
+          {(invitation.venueName || invitation.venueAddress) && (
+            <div className="mt-4 text-sm leading-7 text-ink/62">
+              {invitation.venueName ? <p className="font-medium text-ink">{invitation.venueName}</p> : null}
+              {invitation.venueAddress ? <p>{invitation.venueAddress}</p> : null}
+            </div>
+          )}
           {(invitation.groomFatherName ||
             invitation.groomMotherName ||
             invitation.brideFatherName ||
@@ -149,7 +157,7 @@ function SectionRenderer({
               ) : null}
             </div>
 
-            {renderVenueGuideRows(venueGuide).length ? (
+            {invitation.config.visibility.venueGuide && renderVenueGuideRows(venueGuide).length ? (
               <dl className="grid gap-3 rounded-md border border-white/70 bg-white p-4 text-sm">
                 {renderVenueGuideRows(venueGuide).map((item) => (
                   <div className="grid grid-cols-[72px_1fr] gap-3" key={item.label}>
@@ -202,6 +210,32 @@ function SectionRenderer({
                 target="_blank"
               >
                 지도보기
+              </a>
+            ) : null}
+          </div>
+        </SectionShell>
+      );
+
+    case "contacts":
+      return (
+        <SectionShell title="연락처">
+          <div className="grid gap-3">
+            {invitation.contactPhoneGroom ? (
+              <a
+                className="flex items-center justify-between rounded-md border border-ink/10 px-4 py-3 text-sm text-ink"
+                href={`tel:${invitation.contactPhoneGroom}`}
+              >
+                <span>신랑측</span>
+                <span className="font-medium">{invitation.contactPhoneGroom}</span>
+              </a>
+            ) : null}
+            {invitation.contactPhoneBride ? (
+              <a
+                className="flex items-center justify-between rounded-md border border-ink/10 px-4 py-3 text-sm text-ink"
+                href={`tel:${invitation.contactPhoneBride}`}
+              >
+                <span>신부측</span>
+                <span className="font-medium">{invitation.contactPhoneBride}</span>
               </a>
             ) : null}
           </div>
@@ -317,25 +351,29 @@ function renderParents(father?: string | null, mother?: string | null) {
 }
 
 function shouldRenderSection(sectionId: InvitationSectionId, invitation: InvitationViewData) {
+  const visibility = invitation.config.visibility;
+
   switch (sectionId) {
     case "gallery":
-      return invitation.gallery.length > 0;
+      return visibility.gallery && invitation.gallery.length > 0;
     case "gift":
-      return invitation.config.bankAccounts.length > 0;
+      return visibility.gift && invitation.config.bankAccounts.length > 0;
     case "rsvp":
-      return invitation.rsvpEnabled;
+      return visibility.rsvp && invitation.rsvpEnabled;
     case "guestbook":
-      return invitation.guestbookEnabled;
+      return visibility.guestbook && invitation.guestbookEnabled;
     case "location":
-      return Boolean(
+      return visibility.location && Boolean(
         invitation.venueName ||
           invitation.venueAddress ||
           invitation.venueDetail ||
           invitation.mapLat ||
           invitation.mapLng
       );
+    case "contacts":
+      return visibility.contacts && Boolean(invitation.contactPhoneGroom || invitation.contactPhoneBride);
     case "intro":
-      return Boolean(invitation.greeting || invitation.config.copy.heroDescription);
+      return visibility.greeting && Boolean(invitation.greeting || invitation.config.copy.heroDescription);
     default:
       return false;
   }

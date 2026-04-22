@@ -58,6 +58,8 @@ type UpdateInvitationInput = {
   groomMotherName?: string;
   brideFatherName?: string;
   brideMotherName?: string;
+  contactPhoneGroom?: string;
+  contactPhoneBride?: string;
   eventDate?: Date;
   venueName?: string;
   venueAddress?: string;
@@ -86,6 +88,8 @@ export async function updateInvitationProject(input: UpdateInvitationInput) {
       groomMotherName: input.groomMotherName,
       brideFatherName: input.brideFatherName,
       brideMotherName: input.brideMotherName,
+      contactPhoneGroom: input.contactPhoneGroom,
+      contactPhoneBride: input.contactPhoneBride,
       eventDate: input.eventDate,
       venueName: input.venueName,
       venueAddress: input.venueAddress,

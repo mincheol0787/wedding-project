@@ -13,6 +13,8 @@ type InvitationLivePreviewProps = {
   title: string;
   groomName: string;
   brideName: string;
+  contactPhoneGroom: string;
+  contactPhoneBride: string;
   greeting: string;
   venueName: string;
   eventDate: string;
@@ -25,6 +27,8 @@ export function InvitationLivePreview({
   title,
   groomName,
   brideName,
+  contactPhoneGroom,
+  contactPhoneBride,
   greeting,
   venueName,
   eventDate,
@@ -93,10 +97,15 @@ export function InvitationLivePreview({
             {brideName || "신부"}
           </h3>
           <p className="mt-3 text-xs text-ink/60">{formatPreviewDate(eventDate)}</p>
+          {venueName ? <p className="mt-2 text-xs text-ink/55">{venueName}</p> : null}
         </div>
 
         {config.sectionOrder.map((sectionId) => {
           if (sectionId === "intro") {
+            if (!config.visibility.greeting) {
+              return null;
+            }
+
             return wrapPreviewSection(
               sectionId,
               <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
@@ -111,6 +120,10 @@ export function InvitationLivePreview({
           }
 
           if (sectionId === "gallery" && previewGallery.length) {
+            if (!config.visibility.gallery) {
+              return null;
+            }
+
             return wrapPreviewSection(
               sectionId,
               <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
@@ -135,6 +148,10 @@ export function InvitationLivePreview({
           }
 
           if (sectionId === "location") {
+            if (!config.visibility.location) {
+              return null;
+            }
+
             return wrapPreviewSection(
               sectionId,
               <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
@@ -143,15 +160,46 @@ export function InvitationLivePreview({
                 </h4>
                 <div className="mt-4 rounded-md bg-[#faf6f1] p-4 text-sm text-ink/70">
                   <p className="font-medium text-ink">{venueName || "예식장명"}</p>
-                  <p className="mt-2">
-                    {config.venueGuide.hall || "예식장 안내가 이곳에 표시됩니다."}
-                  </p>
+                  {config.visibility.venueGuide ? (
+                    <p className="mt-2">
+                      {config.venueGuide.hall || "예식장 안내가 이곳에 표시됩니다."}
+                    </p>
+                  ) : null}
+                </div>
+              </section>
+            );
+          }
+
+          if (sectionId === "contacts") {
+            if (!config.visibility.contacts || (!contactPhoneGroom && !contactPhoneBride)) {
+              return null;
+            }
+
+            return wrapPreviewSection(
+              sectionId,
+              <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
+                <h4 className="text-center text-lg font-semibold text-ink">연락처</h4>
+                <div className="mt-4 grid gap-2 text-sm text-ink/70">
+                  {contactPhoneGroom ? (
+                    <div className="rounded-md border border-ink/10 px-3 py-2">
+                      신랑측 {contactPhoneGroom}
+                    </div>
+                  ) : null}
+                  {contactPhoneBride ? (
+                    <div className="rounded-md border border-ink/10 px-3 py-2">
+                      신부측 {contactPhoneBride}
+                    </div>
+                  ) : null}
                 </div>
               </section>
             );
           }
 
           if (sectionId === "gift" && config.bankAccounts.length) {
+            if (!config.visibility.gift) {
+              return null;
+            }
+
             return wrapPreviewSection(
               sectionId,
               <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
@@ -166,6 +214,10 @@ export function InvitationLivePreview({
           }
 
           if (sectionId === "rsvp") {
+            if (!config.visibility.rsvp) {
+              return null;
+            }
+
             return wrapPreviewSection(
               sectionId,
               <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>
@@ -180,6 +232,10 @@ export function InvitationLivePreview({
           }
 
           if (sectionId === "guestbook") {
+            if (!config.visibility.guestbook) {
+              return null;
+            }
+
             return wrapPreviewSection(
               sectionId,
               <section className="border-t border-[#f3ebe5] px-5 py-5" key={sectionId}>

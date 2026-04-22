@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { ProjectCard } from "@/components/dashboard/project-card";
+import { FastLink } from "@/components/ui/fast-link";
 import { getWeddingProjectsByUserId } from "@/server/projects/service";
 
 export default async function DashboardPage() {
@@ -28,12 +28,12 @@ export default async function DashboardPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Link
+            <FastLink
               href="/dashboard/projects/new"
               className="rounded-md bg-ink px-5 py-3 text-sm font-medium text-white"
             >
               새 프로젝트 만들기
-            </Link>
+            </FastLink>
             <SignOutButton />
           </div>
         </header>
@@ -70,12 +70,12 @@ export default async function DashboardPage() {
             <p className="mx-auto mt-3 max-w-xl leading-7 text-ink/60">
               커플 이름과 예식일만 입력하면 청첩장과 식전영상 작업 공간이 함께 생성됩니다.
             </p>
-            <Link
+            <FastLink
               href="/dashboard/projects/new"
               className="mt-7 inline-flex rounded-md bg-ink px-5 py-3 text-sm font-medium text-white"
             >
               첫 프로젝트 만들기
-            </Link>
+            </FastLink>
           </section>
         )}
       </section>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useMemo, useOptimistic, useState } from "react";
 import { useFormStatus } from "react-dom";
 import {
   createProjectScheduleEventAction,
@@ -34,6 +34,11 @@ type SchedulePanelProps = {
   events: ScheduleEventItem[];
 };
 
+type OptimisticScheduleAction =
+  | { type: "toggle"; id: string; isCompleted: boolean }
+  | { type: "update"; patch: Partial<ScheduleEventItem> & { id: string } }
+  | { type: "delete"; id: string };
+
 const initialState: ScheduleActionState = {};
 
 const categoryOptions: Array<{
@@ -56,6 +61,25 @@ const categoryLabelMap = Object.fromEntries(
 ) as Record<ScheduleEventItem["category"], string>;
 
 export function SchedulePanel({ projectId, events }: SchedulePanelProps) {
+  const [localEvents, addOptimisticEvent] = useOptimistic(
+    events,
+    (currentEvents, action: OptimisticScheduleAction) => {
+      switch (action.type) {
+        case "toggle":
+          return currentEvents.map((event) =>
+            event.id === action.id ? { ...event, isCompleted: action.isCompleted } : event
+          );
+        case "update":
+          return currentEvents.map((event) =>
+            event.id === action.patch.id ? { ...event, ...action.patch } : event
+          );
+        case "delete":
+          return currentEvents.filter((event) => event.id !== action.id);
+        default:
+          return currentEvents;
+      }
+    }
+  );
   const [isAllDay, setIsAllDay] = useState(true);
   const [editIsAllDay, setEditIsAllDay] = useState(true);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
@@ -69,16 +93,16 @@ export function SchedulePanel({ projectId, events }: SchedulePanelProps) {
 
   const calendarDays = useMemo(() => buildCalendarDays(currentMonth), [currentMonth]);
   const selectedEvent = useMemo(
-    () => events.find((event) => event.id === selectedEventId) ?? null,
-    [events, selectedEventId]
+    () => localEvents.find((event) => event.id === selectedEventId) ?? null,
+    [localEvents, selectedEventId]
   );
   const eventMap = useMemo(() => {
-    return events.reduce<Record<string, ScheduleEventItem[]>>((acc, event) => {
+    return localEvents.reduce<Record<string, ScheduleEventItem[]>>((acc, event) => {
       const key = formatDateKey(event.startsAt);
       acc[key] = [...(acc[key] ?? []), event];
       return acc;
     }, {});
-  }, [events]);
+  }, [localEvents]);
 
   function selectEvent(event: ScheduleEventItem) {
     setSelectedEventId(event.id);
@@ -199,12 +223,12 @@ export function SchedulePanel({ projectId, events }: SchedulePanelProps) {
               </p>
               <h3 className="mt-2 text-xl font-semibold text-ink">일정 목록</h3>
             </div>
-            <span className="text-sm text-ink/50">총 {events.length}개 일정</span>
+            <span className="text-sm text-ink/50">총 {localEvents.length}개 일정</span>
           </div>
 
           <div className="mt-5 grid gap-3">
-            {events.length ? (
-              events.map((event) => (
+            {localEvents.length ? (
+              localEvents.map((event) => (
                 <form
                   action={toggleProjectScheduleEventAction.bind(null, projectId)}
                   className={`relative overflow-hidden rounded-md border px-4 py-4 transition ${
@@ -213,6 +237,13 @@ export function SchedulePanel({ projectId, events }: SchedulePanelProps) {
                       : "border-ink/10 bg-[#fffdfb]"
                   }`}
                   key={event.id}
+                  onSubmit={() => {
+                    addOptimisticEvent({
+                      type: "toggle",
+                      id: event.id,
+                      isCompleted: !event.isCompleted
+                    });
+                  }}
                 >
                   <input name="eventId" type="hidden" value={event.id} />
                   <input name="isCompleted" type="hidden" value={String(!event.isCompleted)} />
@@ -281,6 +312,13 @@ export function SchedulePanel({ projectId, events }: SchedulePanelProps) {
             event={selectedEvent}
             onClose={() => setSelectedEventId(null)}
             onEditAllDayChange={setEditIsAllDay}
+            onOptimisticDelete={(eventId) => {
+              addOptimisticEvent({ type: "delete", id: eventId });
+              setSelectedEventId(null);
+            }}
+            onOptimisticUpdate={(patch) => {
+              addOptimisticEvent({ type: "update", patch });
+            }}
           />
 
           <div className="rounded-md border border-ink/10 bg-white p-4 shadow-sm sm:p-5">
@@ -351,7 +389,9 @@ function EditSchedulePanel({
   editFormAction,
   deleteFormAction,
   onEditAllDayChange,
-  onClose
+  onClose,
+  onOptimisticDelete,
+  onOptimisticUpdate
 }: {
   event: ScheduleEventItem | null;
   editIsAllDay: boolean;
@@ -363,6 +403,8 @@ function EditSchedulePanel({
   deleteFormAction: (payload: FormData) => void;
   onEditAllDayChange: (value: boolean) => void;
   onClose: () => void;
+  onOptimisticDelete: (eventId: string) => void;
+  onOptimisticUpdate: (patch: Partial<ScheduleEventItem> & { id: string }) => void;
 }) {
   if (!event) {
     return (
@@ -386,7 +428,28 @@ function EditSchedulePanel({
         </button>
       </div>
 
-      <form action={editFormAction} className="mt-5 grid gap-4" key={event.id}>
+      <form
+        action={editFormAction}
+        className="mt-5 grid gap-4"
+        key={event.id}
+        onSubmit={(submitEvent) => {
+          const formData = new FormData(submitEvent.currentTarget);
+          const date = formData.get("date")?.toString() ?? formatDateKey(event.startsAt);
+          const time = formData.get("time")?.toString();
+          const nextIsAllDay = formData.get("isAllDay") === "true";
+          const startsAt = buildScheduleStartDate(date, time, nextIsAllDay) ?? event.startsAt;
+
+          onOptimisticUpdate({
+            id: event.id,
+            title: formData.get("title")?.toString() ?? event.title,
+            description: formData.get("description")?.toString() ?? "",
+            category: (formData.get("category")?.toString() ?? event.category) as ScheduleEventItem["category"],
+            startsAt,
+            isAllDay: nextIsAllDay,
+            isCompleted: formData.get("isCompleted") === "true"
+          });
+        }}
+      >
         <input name="eventId" type="hidden" value={event.id} />
         <Field defaultValue={event.title} label="일정 제목" name="title" required />
         <div className="grid gap-4 md:grid-cols-2">
@@ -445,7 +508,12 @@ function EditSchedulePanel({
         </button>
       </form>
 
-      <form action={deleteFormAction} className="mt-3" key={`${event.id}-delete`}>
+      <form
+        action={deleteFormAction}
+        className="mt-3"
+        key={`${event.id}-delete`}
+        onSubmit={() => onOptimisticDelete(event.id)}
+      >
         <input name="eventId" type="hidden" value={event.id} />
         {deleteState.error ? <p className="mb-2 text-sm text-rose">{deleteState.error}</p> : null}
         {deleteState.message ? <p className="mb-2 text-sm text-sage">{deleteState.message}</p> : null}
@@ -596,6 +664,11 @@ function formatInputTime(date: Date) {
   const hours = String(date.getHours()).padStart(2, "0");
   const minutes = String(date.getMinutes()).padStart(2, "0");
   return `${hours}:${minutes}`;
+}
+
+function buildScheduleStartDate(date: string, time: string | undefined, isAllDay: boolean) {
+  const value = new Date(isAllDay || !time ? `${date}T09:00` : `${date}T${time}`);
+  return Number.isNaN(value.getTime()) ? null : value;
 }
 
 function formatDateTimeLabel(date: Date, isAllDay: boolean) {

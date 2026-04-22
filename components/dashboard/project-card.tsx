@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { FastLink } from "@/components/ui/fast-link";
 
 type ProjectStatus = "DRAFT" | "ACTIVE" | "ARCHIVED" | "DELETED";
 type InvitationStatus = "DRAFT" | "PUBLISHED" | "UNPUBLISHED" | "ARCHIVED";
@@ -93,16 +93,16 @@ export function ProjectCard({
       </dl>
 
       <div className="mt-5 flex flex-wrap gap-2">
-        <Link className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-white" href={`/dashboard/projects/${id}`}>
+        <FastLink className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-white" href={`/dashboard/projects/${id}`}>
           프로젝트 열기
-        </Link>
-        <Link
+        </FastLink>
+        <FastLink
           className="rounded-md border border-ink/15 px-4 py-2 text-sm font-medium text-ink"
           href={`/dashboard/projects/${id}/invitation`}
         >
           청첩장 편집
-        </Link>
-        <Link
+        </FastLink>
+        <FastLink
           className="rounded-md border border-ink/15 px-4 py-2 text-sm font-medium text-ink"
           href={
             invitation?.status === "PUBLISHED"
@@ -112,13 +112,13 @@ export function ProjectCard({
           target={invitation?.status === "PUBLISHED" ? "_blank" : undefined}
         >
           {invitation?.status === "PUBLISHED" ? "공개 페이지" : "청첩장 미리보기"}
-        </Link>
-        <Link
+        </FastLink>
+        <FastLink
           className="rounded-md border border-ink/15 px-4 py-2 text-sm font-medium text-ink"
           href={`/dashboard/projects/${id}/video`}
         >
           영상 편집
-        </Link>
+        </FastLink>
       </div>
 
       {latestRenderJob ? (

@@ -108,20 +108,6 @@ export async function getWeddingProjectsByUserId(userId: string) {
           createdAt: true
         }
       },
-      scheduleEvents: {
-        where: {
-          deletedAt: null,
-          isCompleted: false,
-          startsAt: {
-            gte: startOfToday(),
-            lte: addDays(new Date(), 14)
-          }
-        },
-        orderBy: {
-          startsAt: "asc"
-        },
-        take: 2
-      },
       _count: {
         select: {
           mediaAssets: true,
@@ -383,16 +369,4 @@ async function getEditableScheduleEvent(userId: string, projectId: string, event
       id: true
     }
   });
-}
-
-function addDays(date: Date, days: number) {
-  const next = new Date(date);
-  next.setDate(next.getDate() + days);
-  return next;
-}
-
-function startOfToday() {
-  const date = new Date();
-  date.setHours(0, 0, 0, 0);
-  return date;
 }

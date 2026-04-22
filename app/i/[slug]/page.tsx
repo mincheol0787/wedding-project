@@ -35,6 +35,8 @@ export default async function InvitationPage({ params }: InvitationPageProps) {
     groomMotherName: invitation.groomMotherName,
     brideFatherName: invitation.brideFatherName,
     brideMotherName: invitation.brideMotherName,
+    contactPhoneGroom: invitation.contactPhoneGroom,
+    contactPhoneBride: invitation.contactPhoneBride,
     eventDate: invitation.eventDate ?? invitation.weddingProject.weddingDate,
     greeting: invitation.greeting,
     venueName: invitation.venueName ?? invitation.weddingProject.venueName,

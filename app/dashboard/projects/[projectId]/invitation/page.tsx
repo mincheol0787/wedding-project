@@ -62,6 +62,8 @@ export default async function InvitationEditorPage({ params }: InvitationEditorP
             groomMotherName: invitation.groomMotherName ?? "",
             brideFatherName: invitation.brideFatherName ?? "",
             brideMotherName: invitation.brideMotherName ?? "",
+            contactPhoneGroom: invitation.contactPhoneGroom ?? "",
+            contactPhoneBride: invitation.contactPhoneBride ?? "",
             eventDate: toDateTimeLocal(invitation.eventDate ?? project.weddingDate),
             venueName: invitation.venueName ?? project.venueName ?? "",
             venueAddress: invitation.venueAddress ?? project.venueAddress ?? "",

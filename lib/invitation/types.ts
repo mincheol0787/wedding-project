@@ -13,6 +13,7 @@ export const invitationSectionIds = [
   "intro",
   "gallery",
   "location",
+  "contacts",
   "gift",
   "rsvp",
   "guestbook"
@@ -107,6 +108,20 @@ export const invitationPlaceSearchSchema = z.object({
   placeUrl: z.string().default("")
 });
 
+export const invitationVisibilitySchema = z.object({
+  essentialNames: z.literal(true).default(true),
+  essentialDate: z.literal(true).default(true),
+  essentialVenue: z.literal(true).default(true),
+  greeting: z.boolean().default(true),
+  gallery: z.boolean().default(true),
+  location: z.boolean().default(true),
+  venueGuide: z.boolean().default(true),
+  gift: z.boolean().default(true),
+  rsvp: z.boolean().default(true),
+  guestbook: z.boolean().default(true),
+  contacts: z.boolean().default(false)
+});
+
 export const invitationConfigSchema = z.object({
   templateId: z.enum(invitationTemplateIds).default("soft-rose"),
   sectionOrder: z.array(z.enum(invitationSectionIds)).default(invitationSectionIds.slice()),
@@ -117,6 +132,7 @@ export const invitationConfigSchema = z.object({
   venueGuide: invitationVenueGuideSchema.default(() => invitationVenueGuideSchema.parse({})),
   design: invitationDesignSchema.default(() => invitationDesignSchema.parse({})),
   placeSearch: invitationPlaceSearchSchema.default(() => invitationPlaceSearchSchema.parse({})),
+  visibility: invitationVisibilitySchema.default(() => invitationVisibilitySchema.parse({})),
   bankAccounts: z.array(bankAccountSchema).default([])
 });
 
@@ -127,16 +143,17 @@ export type InvitationVenueGuide = z.infer<typeof invitationVenueGuideSchema>;
 export type InvitationGalleryOptions = z.infer<typeof invitationGalleryOptionsSchema>;
 export type InvitationDesign = z.infer<typeof invitationDesignSchema>;
 export type InvitationPlaceSearch = z.infer<typeof invitationPlaceSearchSchema>;
+export type InvitationVisibility = z.infer<typeof invitationVisibilitySchema>;
 export type InvitationConfig = z.infer<typeof invitationConfigSchema>;
 
 export function getDefaultSectionOrder(templateId: InvitationTemplateId): InvitationSectionId[] {
   switch (templateId) {
     case "clean-garden":
-      return ["intro", "location", "gallery", "rsvp", "gift", "guestbook"];
+      return ["intro", "location", "contacts", "gallery", "rsvp", "gift", "guestbook"];
     case "classic-letter":
-      return ["intro", "gallery", "gift", "location", "guestbook", "rsvp"];
+      return ["intro", "gallery", "gift", "location", "contacts", "guestbook", "rsvp"];
     default:
-      return ["intro", "gallery", "location", "gift", "rsvp", "guestbook"];
+      return ["intro", "gallery", "location", "contacts", "gift", "rsvp", "guestbook"];
   }
 }
 
@@ -164,6 +181,7 @@ export function createDefaultInvitationConfig(
       fontPreset: getDefaultFontPreset(templateId)
     },
     placeSearch: invitationPlaceSearchSchema.parse({}),
+    visibility: invitationVisibilitySchema.parse({}),
     bankAccounts: []
   };
 }
@@ -189,6 +207,13 @@ export function parseInvitationConfig(value: unknown): InvitationConfig {
     ...parsed,
     design: {
       fontPreset: parsed.design?.fontPreset ?? getDefaultFontPreset(parsed.templateId)
+    },
+    visibility: {
+      ...invitationVisibilitySchema.parse({}),
+      ...parsed.visibility,
+      essentialNames: true,
+      essentialDate: true,
+      essentialVenue: true
     },
     sectionOrder: normalizeSectionOrder(parsed.sectionOrder, parsed.templateId)
   };
