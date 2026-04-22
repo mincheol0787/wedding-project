@@ -99,7 +99,7 @@ export const invitationGalleryOptionsSchema = z.object({
 export const invitationDesignSchema = z.object({
   fontPreset: z.enum(invitationFontPresets).default("serif"),
   heroAccentColor: z.string().default("#fff0d0"),
-  heroTextColor: z.string().default("#2b2b2b"),
+  heroTextColor: z.string().default("#fff0d0"),
   heroOffsetY: z.number().min(-40).max(40).default(0),
   heroMotionSpeed: z.number().min(0.5).max(8).default(3.7),
   autoFocus: z.boolean().default(true)
