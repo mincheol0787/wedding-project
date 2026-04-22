@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { auth } from "@/auth";
 import { InvitationView, type InvitationViewData } from "@/components/invitation/shared/invitation-view";
 import { AppTopNav } from "@/components/layout/app-top-nav";
 import { createDefaultInvitationConfig } from "@/lib/invitation/types";
@@ -17,9 +18,14 @@ export default async function InvitationPage({ params }: InvitationPageProps) {
   const slug = decodeURIComponent(rawSlug).trim();
 
   if (slug === "sample") {
+    const session = await auth();
+
     return (
       <>
-        <AppTopNav />
+        <AppTopNav
+          isAdmin={session?.user?.role === "ADMIN"}
+          userName={session?.user?.name ?? session?.user?.email}
+        />
         <InvitationView invitation={buildSampleInvitation()} />
       </>
     );
