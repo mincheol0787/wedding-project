@@ -1,4 +1,3 @@
-import { renderQueue } from "@/worker/queues";
 import { attachQueueJob, createRenderJob, markRenderJobFailed } from "@/server/video/render-jobs";
 import type { VideoRenderInput } from "@/lib/video/render-input";
 
@@ -21,6 +20,7 @@ export async function requestVideoRender(input: RequestRenderInput) {
   );
 
   try {
+    const { renderQueue } = await import("@/worker/queues");
     const queueJob = await renderQueue.add(
       "render-video",
       {

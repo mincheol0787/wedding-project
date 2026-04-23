@@ -49,6 +49,7 @@ export type VideoEditorState = {
 
 export type VideoEditorAction =
   | { type: "set-template"; templateId: VideoTemplateId }
+  | { type: "apply-sample-video" }
   | { type: "add-images"; images: EditorImageAsset[] }
   | { type: "remove-image"; imageAssetId: string }
   | { type: "move-scene"; sceneId: string; direction: "up" | "down" }
@@ -91,6 +92,9 @@ export function videoEditorReducer(
         ...state,
         templateId: action.templateId
       };
+
+    case "apply-sample-video":
+      return createSpringSampleVideoState(state.project);
 
     case "add-images": {
       const nextImages = [...state.images, ...action.images];
@@ -196,6 +200,75 @@ export function videoEditorReducer(
   }
 }
 
+export function createSpringSampleVideoState(
+  project: VideoEditorState["project"]
+): VideoEditorState {
+  const images: EditorImageAsset[] = [
+    ["spring-1", "The day we met", "#ead3d7"],
+    ["spring-2", "A soft beginning", "#d7dfd4"],
+    ["spring-3", "Every small promise", "#f1e7d7"],
+    ["spring-4", "Our favorite season", "#e6d7c7"],
+    ["spring-5", "Family and friends", "#eef1ed"],
+    ["spring-6", "Before the aisle", "#f4e7e2"],
+    ["spring-7", "Together, always", "#e2d3b2"],
+    ["spring-8", "Our wedding day", "#ead3d7"]
+  ].map(([id, title, accent]) => ({
+    id,
+    fileName: `${id}.jpg`,
+    previewUrl: createEditorSampleImageDataUri(title, accent),
+    alt: title
+  }));
+
+  return {
+    project,
+    templateId: "film-letter",
+    composition: {
+      width: 1920,
+      height: 1080,
+      fps: 30
+    },
+    images,
+    scenes: images.map((image, index) => ({
+      id: `spring-scene-${index + 1}`,
+      imageAssetId: image.id,
+      durationMs: 7500,
+      motion: index % 2 === 0 ? "zoom-in" : "zoom-out"
+    })),
+    lyricSegments: [
+      {
+        id: "spring-lyric-1",
+        text: "처음 마주한 계절부터",
+        startMs: 1200,
+        endMs: 6200
+      },
+      {
+        id: "spring-lyric-2",
+        text: "서로의 하루가 되어준 우리",
+        startMs: 9000,
+        endMs: 15000
+      },
+      {
+        id: "spring-lyric-3",
+        text: "가장 따뜻한 봄의 끝에서",
+        startMs: 18500,
+        endMs: 24500
+      },
+      {
+        id: "spring-lyric-4",
+        text: "이제 같은 길을 걸어가려 합니다",
+        startMs: 29000,
+        endMs: 37000
+      },
+      {
+        id: "spring-lyric-5",
+        text: "우리의 시작을 함께 축복해 주세요",
+        startMs: 43000,
+        endMs: 53500
+      }
+    ]
+  };
+}
+
 export function buildVideoRenderInput(state: VideoEditorState): VideoRenderInput {
   let cursorMs = 0;
 
@@ -263,4 +336,24 @@ export function createId(prefix: string) {
   }
 
   return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
+
+function createEditorSampleImageDataUri(title: string, accent: string) {
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+      <defs>
+        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stop-color="#fbfaf7"/>
+          <stop offset="100%" stop-color="${accent}"/>
+        </linearGradient>
+      </defs>
+      <rect width="1920" height="1080" fill="url(#bg)"/>
+      <rect x="132" y="112" width="1656" height="856" rx="28" fill="rgba(255,255,255,0.42)" stroke="rgba(255,255,255,0.72)" stroke-width="2"/>
+      <circle cx="960" cy="500" r="210" fill="rgba(255,255,255,0.36)"/>
+      <text x="960" y="750" fill="#242424" font-family="Georgia, serif" font-size="74" text-anchor="middle">${title}</text>
+      <text x="960" y="828" fill="#677e6e" font-family="Arial, sans-serif" font-size="28" letter-spacing="9" text-anchor="middle">SPRING WEDDING FILM</text>
+    </svg>
+  `;
+
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }

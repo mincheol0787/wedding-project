@@ -21,6 +21,10 @@ export async function executeRenderJob(renderJobId: string, attempt: number) {
     throw new Error(`RenderJob not found: ${renderJobId}`);
   }
 
+  if (renderJob.deletedAt || renderJob.status === "CANCELED") {
+    return;
+  }
+
   await markRenderJobProcessing(renderJobId, attempt);
 
   const parsed = videoRenderInputSchema.safeParse(renderJob.input);
@@ -43,7 +47,16 @@ export async function executeRenderJob(renderJobId: string, attempt: number) {
   await writeFile(propsPath, JSON.stringify({ input: parsed.data }, null, 2), "utf8");
   await updateRenderJobProgress(renderJobId, 25);
 
+  if (await isRenderJobCanceled(renderJobId)) {
+    return;
+  }
+
   await runRemotionRender(propsPath, outputPath);
+
+  if (await isRenderJobCanceled(renderJobId)) {
+    return;
+  }
+
   await updateRenderJobProgress(renderJobId, 90);
 
   const outputAsset = await prisma.mediaAsset.create({
@@ -62,6 +75,20 @@ export async function executeRenderJob(renderJobId: string, attempt: number) {
   });
 
   await markRenderJobSucceeded(renderJobId, outputAsset.id);
+}
+
+async function isRenderJobCanceled(renderJobId: string) {
+  const job = await prisma.renderJob.findUnique({
+    where: {
+      id: renderJobId
+    },
+    select: {
+      status: true,
+      deletedAt: true
+    }
+  });
+
+  return !job || Boolean(job.deletedAt) || job.status === "CANCELED";
 }
 
 function runRemotionRender(propsPath: string, outputPath: string) {

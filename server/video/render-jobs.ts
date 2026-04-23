@@ -93,6 +93,55 @@ export async function markRenderJobFailed(renderJobId: string, errorMessage: str
   });
 }
 
+export async function cancelRenderJob(userId: string, renderJobId: string) {
+  return prisma.renderJob.updateMany({
+    where: {
+      id: renderJobId,
+      userId,
+      deletedAt: null,
+      status: {
+        in: ["QUEUED", "PROCESSING"]
+      }
+    },
+    data: {
+      status: "CANCELED",
+      finishedAt: new Date(),
+      errorMessage: null
+    }
+  });
+}
+
+export async function deleteRenderJob(userId: string, renderJobId: string) {
+  return prisma.renderJob.updateMany({
+    where: {
+      id: renderJobId,
+      userId,
+      deletedAt: null
+    },
+    data: {
+      deletedAt: new Date()
+    }
+  });
+}
+
+export async function getRetryableRenderJob(userId: string, renderJobId: string) {
+  return prisma.renderJob.findFirst({
+    where: {
+      id: renderJobId,
+      userId,
+      deletedAt: null,
+      status: {
+        in: ["FAILED", "CANCELED"]
+      }
+    },
+    select: {
+      weddingProjectId: true,
+      videoProjectId: true,
+      input: true
+    }
+  });
+}
+
 export async function getRenderJobsForProject(userId: string, weddingProjectId: string) {
   return prisma.renderJob.findMany({
     where: {

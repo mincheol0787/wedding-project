@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { InvitationLivePreview } from "@/components/invitation/editor/invitation-live-preview";
 import {
   saveInvitationAction,
@@ -61,7 +61,19 @@ type InvitationEditorProps = {
   };
 };
 
+type InvitationEditorSnapshot = {
+  form: InvitationEditorProps["defaults"] extends infer Defaults
+    ? Defaults extends { config: InvitationConfig; gallery: InvitationGalleryItem[] }
+      ? Omit<Defaults, "config" | "gallery" | "status">
+      : never
+    : never;
+  gallery: InvitationGalleryItem[];
+  config: InvitationConfig;
+  placeQuery: string;
+};
+
 const initialState: InvitationSaveState = {};
+const maxHistoryItems = 24;
 
 export function InvitationEditor({
   projectId,
@@ -106,6 +118,11 @@ export function InvitationEditor({
   const [isMobilePreviewOpen, setIsMobilePreviewOpen] = useState(false);
   const [submitIntent, setSubmitIntent] = useState<"draft" | "publish">("draft");
   const [draggingSectionId, setDraggingSectionId] = useState<InvitationSectionId | null>(null);
+  const [history, setHistory] = useState<InvitationEditorSnapshot[]>([]);
+  const [future, setFuture] = useState<InvitationEditorSnapshot[]>([]);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const lastSnapshotRef = useRef<string | null>(null);
+  const isRestoringSnapshotRef = useRef(false);
 
   const action = saveInvitationAction.bind(null, projectId);
   const [state, formAction, pending] = useActionState(action, initialState);
@@ -122,6 +139,75 @@ export function InvitationEditor({
       }),
     [config, placeQuery]
   );
+  const draftStorageKey = useMemo(() => `mcpage:invitation-draft:${projectId}`, [projectId]);
+  const currentSnapshot = useMemo<InvitationEditorSnapshot>(
+    () => ({
+      form,
+      gallery,
+      config,
+      placeQuery
+    }),
+    [config, form, gallery, placeQuery]
+  );
+  const preflightItems = useMemo(
+    () => [
+      { label: "신랑/신부 이름", done: Boolean(form.groomName.trim() && form.brideName.trim()), required: true },
+      { label: "예식 일시", done: Boolean(form.eventDate), required: true },
+      { label: "예식 장소", done: Boolean(form.venueName.trim() && form.venueAddress.trim()), required: true },
+      { label: "인사말", done: !config.visibility.greeting || Boolean(form.greeting.trim()), required: false },
+      { label: "사진", done: !config.visibility.gallery || gallery.length > 0, required: false },
+      { label: "지도", done: !config.visibility.location || Boolean(form.mapLat && form.mapLng), required: false }
+    ],
+    [config.visibility.gallery, config.visibility.greeting, config.visibility.location, form, gallery.length]
+  );
+  const requiredPreflightReady = preflightItems
+    .filter((item) => item.required)
+    .every((item) => item.done);
+  const visibleSectionCount = Object.values(config.visibility).filter(Boolean).length;
+
+  useEffect(() => {
+    const serialized = JSON.stringify(currentSnapshot);
+
+    if (lastSnapshotRef.current === null) {
+      lastSnapshotRef.current = serialized;
+      return;
+    }
+
+    if (isRestoringSnapshotRef.current) {
+      lastSnapshotRef.current = serialized;
+      isRestoringSnapshotRef.current = false;
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      if (serialized === lastSnapshotRef.current) {
+        return;
+      }
+
+      const previousSnapshot = JSON.parse(lastSnapshotRef.current ?? serialized) as InvitationEditorSnapshot;
+      setHistory((current) => [...current.slice(-(maxHistoryItems - 1)), previousSnapshot]);
+      setFuture([]);
+      lastSnapshotRef.current = serialized;
+    }, 650);
+
+    return () => window.clearTimeout(timer);
+  }, [currentSnapshot]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const savedAt = new Date();
+      window.localStorage.setItem(
+        draftStorageKey,
+        JSON.stringify({
+          ...currentSnapshot,
+          savedAt: savedAt.toISOString()
+        })
+      );
+      setLastSavedAt(savedAt);
+    }, 900);
+
+    return () => window.clearTimeout(timer);
+  }, [currentSnapshot, draftStorageKey]);
 
   async function handleGalleryUpload(files: FileList | null) {
     if (!files?.length) {
@@ -175,6 +261,50 @@ export function InvitationEditor({
     } finally {
       setIsSearchingPlaces(false);
     }
+  }
+
+  function restoreSnapshot(snapshot: InvitationEditorSnapshot) {
+    isRestoringSnapshotRef.current = true;
+    setForm(snapshot.form);
+    setGallery(snapshot.gallery);
+    setConfig(snapshot.config);
+    setPlaceQuery(snapshot.placeQuery);
+  }
+
+  function undoEdit() {
+    setHistory((current) => {
+      const previous = current.at(-1);
+
+      if (!previous) {
+        return current;
+      }
+
+      setFuture((futureItems) => [currentSnapshot, ...futureItems].slice(0, maxHistoryItems));
+      restoreSnapshot(previous);
+      return current.slice(0, -1);
+    });
+  }
+
+  function redoEdit() {
+    setFuture((current) => {
+      const next = current[0];
+
+      if (!next) {
+        return current;
+      }
+
+      setHistory((historyItems) => [...historyItems.slice(-(maxHistoryItems - 1)), currentSnapshot]);
+      restoreSnapshot(next);
+      return current.slice(1);
+    });
+  }
+
+  async function copyPublicUrl() {
+    if (!publicUrl) {
+      return;
+    }
+
+    await navigator.clipboard.writeText(publicUrl);
   }
 
   function selectTemplate(templateId: InvitationTemplateId) {
@@ -368,7 +498,10 @@ export function InvitationEditor({
       : null;
 
   return (
-    <form action={formAction} className="grid gap-6 xl:grid-cols-[minmax(380px,0.78fr)_minmax(0,1.22fr)] xl:items-start">
+    <form
+      action={formAction}
+      className="grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)] 2xl:grid-cols-[260px_minmax(0,1fr)_minmax(340px,420px)] xl:items-start"
+    >
       <input name="galleryJson" type="hidden" value={galleryJson} />
       <input name="configJson" type="hidden" value={configJson} />
       <input name="title" type="hidden" value={form.title} />
@@ -390,31 +523,18 @@ export function InvitationEditor({
       <input name="mapLng" type="hidden" value={form.mapLng} />
 
       <aside className="min-w-0 xl:sticky xl:top-20">
-        <div className="rounded-md border border-ink/10 bg-white/95 p-3 shadow-[0_18px_60px_rgba(36,36,36,0.06)]">
-          <button
-            className="flex w-full items-center justify-between rounded-md border border-ink/10 bg-[#fbfcfb] px-4 py-3 text-left text-sm font-medium text-ink xl:hidden"
-            onClick={() => setIsMobilePreviewOpen((value) => !value)}
-            type="button"
-          >
-            모바일 미리보기
-            <span className="text-rose">{isMobilePreviewOpen ? "접기" : "열기"}</span>
-          </button>
-          <div className={`${isMobilePreviewOpen ? "mt-3 block" : "hidden"} xl:mt-0 xl:block`}>
-            <InvitationLivePreview
-              brideName={form.brideName}
-              contactPhoneBride={form.contactPhoneBride}
-              contactPhoneGroom={form.contactPhoneGroom}
-              config={config}
-              eventDate={form.eventDate}
-              gallery={gallery}
-              greeting={form.greeting}
-              groomName={form.groomName}
-              onMoveSection={moveSection}
-              title={form.title}
-              venueName={form.venueName}
-            />
-          </div>
-        </div>
+        <EditorControlRail
+          canRedo={future.length > 0}
+          canUndo={history.length > 0}
+          lastSavedAt={lastSavedAt}
+          onCopyPublicUrl={copyPublicUrl}
+          onRedo={redoEdit}
+          onUndo={undoEdit}
+          preflightItems={preflightItems}
+          publicUrl={publicUrl}
+          requiredPreflightReady={requiredPreflightReady}
+          visibleSectionCount={visibleSectionCount}
+        />
       </aside>
 
       <div className="min-w-0 grid gap-5">
@@ -1053,7 +1173,7 @@ export function InvitationEditor({
               </button>
               <button
                 className="rounded-md bg-white px-5 py-3 text-sm font-medium text-ink transition hover:bg-[#f4eee9] disabled:opacity-60"
-                disabled={pending}
+                disabled={pending || !requiredPreflightReady}
                 name="intent"
                 onClick={() => setSubmitIntent("publish")}
                 type="submit"
@@ -1066,7 +1186,161 @@ export function InvitationEditor({
         </section>
       </div>
 
+      <aside className="min-w-0 2xl:sticky 2xl:top-20">
+        <div className="rounded-md border border-ink/10 bg-white/95 p-3 shadow-[0_18px_60px_rgba(36,36,36,0.06)]">
+          <button
+            className="flex w-full items-center justify-between rounded-md border border-ink/10 bg-[#fbfcfb] px-4 py-3 text-left text-sm font-medium text-ink 2xl:hidden"
+            onClick={() => setIsMobilePreviewOpen((value) => !value)}
+            type="button"
+          >
+            모바일 미리보기
+            <span className="text-rose">{isMobilePreviewOpen ? "접기" : "열기"}</span>
+          </button>
+          <div
+            className={`${isMobilePreviewOpen ? "mt-3 block" : "hidden"} max-h-[calc(100vh-7rem)] overflow-y-auto pr-1 2xl:mt-0 2xl:block`}
+          >
+            <InvitationLivePreview
+              brideName={form.brideName}
+              contactPhoneBride={form.contactPhoneBride}
+              contactPhoneGroom={form.contactPhoneGroom}
+              config={config}
+              eventDate={form.eventDate}
+              gallery={gallery}
+              greeting={form.greeting}
+              groomName={form.groomName}
+              onMoveSection={moveSection}
+              title={form.title}
+              venueName={form.venueName}
+            />
+          </div>
+        </div>
+      </aside>
+
     </form>
+  );
+}
+
+function EditorControlRail({
+  canRedo,
+  canUndo,
+  lastSavedAt,
+  onCopyPublicUrl,
+  onRedo,
+  onUndo,
+  preflightItems,
+  publicUrl,
+  requiredPreflightReady,
+  visibleSectionCount
+}: {
+  canRedo: boolean;
+  canUndo: boolean;
+  lastSavedAt: Date | null;
+  onCopyPublicUrl: () => void;
+  onRedo: () => void;
+  onUndo: () => void;
+  preflightItems: Array<{ label: string; done: boolean; required: boolean }>;
+  publicUrl: string | null;
+  requiredPreflightReady: boolean;
+  visibleSectionCount: number;
+}) {
+  const qrCodeUrl = publicUrl
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(publicUrl)}`
+    : null;
+
+  return (
+    <div className="grid gap-4">
+      <section className="rounded-md border border-ink/10 bg-white/95 p-4 shadow-[0_18px_60px_rgba(36,36,36,0.06)]">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose">Status</p>
+        <h3 className="mt-2 text-lg font-semibold text-ink">
+          {requiredPreflightReady ? "공개 준비가 거의 끝났어요" : "공개 전 확인이 필요해요"}
+        </h3>
+        <p className="mt-2 text-sm leading-6 text-ink/55">
+          {lastSavedAt
+            ? `마지막 자동저장 ${formatSavedTime(lastSavedAt)}`
+            : "입력 내용은 잠시 후 자동저장됩니다."}
+        </p>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <button
+            className="rounded-md border border-ink/10 px-3 py-2 text-sm font-medium text-ink transition enabled:hover:border-sage/40 disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={!canUndo}
+            onClick={onUndo}
+            type="button"
+          >
+            되돌리기
+          </button>
+          <button
+            className="rounded-md border border-ink/10 px-3 py-2 text-sm font-medium text-ink transition enabled:hover:border-sage/40 disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={!canRedo}
+            onClick={onRedo}
+            type="button"
+          >
+            다시 실행
+          </button>
+        </div>
+      </section>
+
+      <section className="rounded-md border border-ink/10 bg-white/95 p-4 shadow-[0_18px_60px_rgba(36,36,36,0.05)]">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose">Checklist</p>
+        <div className="mt-4 grid gap-2">
+          {preflightItems.map((item) => (
+            <div
+              className="flex items-center justify-between gap-3 rounded-md border border-ink/8 bg-[#fbfcfb] px-3 py-2 text-sm"
+              key={item.label}
+            >
+              <span className="text-ink/70">{item.label}</span>
+              <span
+                className={`rounded-md px-2 py-1 text-xs font-medium ${
+                  item.done ? "bg-sage/10 text-sage" : "bg-rose/10 text-rose"
+                }`}
+              >
+                {item.done ? "완료" : item.required ? "필수" : "선택"}
+              </span>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-xs leading-5 text-ink/45">
+          필수 정보는 숨길 수 없고, 선택 섹션은 미리보기와 공개 페이지에 같은 규칙으로 반영됩니다.
+        </p>
+      </section>
+
+      <section className="rounded-md border border-ink/10 bg-white/95 p-4 shadow-[0_18px_60px_rgba(36,36,36,0.05)]">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose">Share</p>
+        <p className="mt-2 text-sm text-ink/55">표시 중인 섹션 {visibleSectionCount}개</p>
+        {publicUrl && qrCodeUrl ? (
+          <div className="mt-4 grid gap-3">
+            <div className="rounded-md border border-ink/8 bg-[#fbfcfb] p-3">
+              <Image
+                alt="청첩장 공개 링크 QR 코드"
+                className="mx-auto"
+                height={140}
+                src={qrCodeUrl}
+                unoptimized
+                width={140}
+              />
+            </div>
+            <button
+              className="rounded-md bg-ink px-3 py-2.5 text-sm font-medium text-white"
+              onClick={onCopyPublicUrl}
+              type="button"
+            >
+              공개 URL 복사
+            </button>
+            <a
+              className="rounded-md border border-ink/10 px-3 py-2.5 text-center text-sm font-medium text-ink"
+              href={`https://story.kakao.com/share?url=${encodeURIComponent(publicUrl)}`}
+              rel="noreferrer"
+              target="_blank"
+            >
+              카카오로 공유
+            </a>
+          </div>
+        ) : (
+          <p className="mt-3 rounded-md bg-ink/5 px-3 py-3 text-sm leading-6 text-ink/55">
+            저장 후 공개하면 URL 복사와 QR 코드가 활성화됩니다.
+          </p>
+        )}
+      </section>
+    </div>
   );
 }
 
@@ -1169,6 +1443,13 @@ function getFontPresetClass(fontPreset: InvitationConfig["design"]["fontPreset"]
     default:
       return "font-serif";
   }
+}
+
+function formatSavedTime(date: Date) {
+  return new Intl.DateTimeFormat("ko-KR", {
+    hour: "numeric",
+    minute: "2-digit"
+  }).format(date);
 }
 
 function readFileAsDataUrl(file: File) {

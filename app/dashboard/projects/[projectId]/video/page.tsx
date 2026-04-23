@@ -67,7 +67,7 @@ export default async function VideoEditorPage({ params }: VideoEditorPageProps) 
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Jobs</p>
             <h2 className="mt-2 text-2xl font-semibold text-ink">렌더링 상태</h2>
           </div>
-          <RenderJobList jobs={renderJobs} />
+          <RenderJobList jobs={renderJobs} projectId={project.id} />
         </section>
       </section>
     </main>

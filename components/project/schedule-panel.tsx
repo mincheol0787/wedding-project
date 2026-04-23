@@ -60,6 +60,61 @@ const categoryLabelMap = Object.fromEntries(
   categoryOptions.map((option) => [option.value, option.label])
 ) as Record<ScheduleEventItem["category"], string>;
 
+const categoryStyleMap: Record<
+  ScheduleEventItem["category"],
+  {
+    chip: string;
+    event: string;
+    dot: string;
+  }
+> = {
+  TODO: {
+    chip: "bg-ink/8 text-ink/65",
+    event: "bg-ink/[0.055] text-ink shadow-[inset_3px_0_0_rgba(36,36,36,0.2)]",
+    dot: "bg-ink/45"
+  },
+  MEETING: {
+    chip: "bg-sage/12 text-sage",
+    event: "bg-sage/12 text-ink shadow-[inset_3px_0_0_rgba(103,126,110,0.35)]",
+    dot: "bg-sage"
+  },
+  VENUE: {
+    chip: "bg-rose/10 text-rose",
+    event: "bg-rose/10 text-ink shadow-[inset_3px_0_0_rgba(179,91,99,0.35)]",
+    dot: "bg-rose"
+  },
+  STUDIO: {
+    chip: "bg-[#d8c7a3]/20 text-[#8a7147]",
+    event: "bg-[#d8c7a3]/18 text-ink shadow-[inset_3px_0_0_rgba(138,113,71,0.35)]",
+    dot: "bg-[#b7955c]"
+  },
+  DRESS: {
+    chip: "bg-[#ead3d7]/40 text-rose",
+    event: "bg-[#ead3d7]/28 text-ink shadow-[inset_3px_0_0_rgba(179,91,99,0.28)]",
+    dot: "bg-[#d9a5ad]"
+  },
+  MAKEUP: {
+    chip: "bg-[#e6d7c7]/45 text-[#8c6450]",
+    event: "bg-[#e6d7c7]/35 text-ink shadow-[inset_3px_0_0_rgba(140,100,80,0.28)]",
+    dot: "bg-[#bd8d73]"
+  },
+  INVITATION: {
+    chip: "bg-[#eef1ed] text-sage",
+    event: "bg-[#eef1ed] text-ink shadow-[inset_3px_0_0_rgba(103,126,110,0.28)]",
+    dot: "bg-sage"
+  },
+  VIDEO: {
+    chip: "bg-[#f1eee8] text-ink/65",
+    event: "bg-[#f1eee8] text-ink shadow-[inset_3px_0_0_rgba(36,36,36,0.18)]",
+    dot: "bg-ink/55"
+  },
+  PAYMENT: {
+    chip: "bg-[#f4e7e2] text-rose",
+    event: "bg-[#f4e7e2] text-ink shadow-[inset_3px_0_0_rgba(179,91,99,0.28)]",
+    dot: "bg-rose/75"
+  }
+};
+
 export function SchedulePanel({ projectId, events }: SchedulePanelProps) {
   const [localEvents, addOptimisticEvent] = useOptimistic(
     events,
@@ -103,6 +158,18 @@ export function SchedulePanel({ projectId, events }: SchedulePanelProps) {
       return acc;
     }, {});
   }, [localEvents]);
+  const todayKey = formatDateKey(new Date());
+  const todayEvents = useMemo(
+    () => localEvents.filter((event) => formatDateKey(event.startsAt) === todayKey),
+    [localEvents, todayKey]
+  );
+  const nextActiveEvent = useMemo(() => {
+    const today = startOfDay(new Date());
+
+    return [...localEvents]
+      .filter((event) => !event.isCompleted && event.startsAt >= today)
+      .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime())[0];
+  }, [localEvents]);
 
   function selectEvent(event: ScheduleEventItem) {
     setSelectedEventId(event.id);
@@ -112,7 +179,7 @@ export function SchedulePanel({ projectId, events }: SchedulePanelProps) {
   return (
     <section className="grid gap-6">
       <div className="rounded-md border border-ink/10 bg-white p-4 shadow-sm sm:p-6">
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)] lg:items-center">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(320px,440px)] lg:items-center">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose">
               Schedule Calendar
@@ -121,8 +188,26 @@ export function SchedulePanel({ projectId, events }: SchedulePanelProps) {
             <p className="mt-2 text-sm text-ink/55">
               완료된 일정은 어둡게 표시하고 캘린더에는 그대로 남겨 준비 흐름을 확인할 수 있습니다.
             </p>
+            <div className="mt-4 flex flex-wrap gap-2 text-xs font-medium">
+              <span className="rounded-md bg-rose/10 px-3 py-1.5 text-rose">
+                오늘 {todayEvents.length}개
+              </span>
+              {nextActiveEvent ? (
+                <span className="rounded-md bg-sage/10 px-3 py-1.5 text-sage">
+                  다음 일정 {getDdayLabel(nextActiveEvent.startsAt)}
+                </span>
+              ) : (
+                <span className="rounded-md bg-ink/5 px-3 py-1.5 text-ink/55">
+                  남은 일정 없음
+                </span>
+              )}
+            </div>
           </div>
-          <div className="grid w-full grid-cols-[72px_minmax(0,1fr)_72px] items-center gap-2 rounded-md border border-ink/10 bg-porcelain/50 p-1.5">
+          <div className="flex w-full flex-col gap-3 rounded-md border border-ink/10 bg-porcelain/50 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="min-w-0 text-center text-sm font-semibold text-ink sm:text-left">
+              {currentMonth.getFullYear()}년 {currentMonth.getMonth() + 1}월
+            </p>
+            <div className="grid grid-cols-3 gap-2 sm:w-auto">
             <button
               className="min-h-10 rounded-md bg-white px-3 py-2 text-sm font-medium text-ink transition hover:text-rose"
               onClick={() => setCurrentMonth((value) => addMonths(value, -1))}
@@ -130,9 +215,13 @@ export function SchedulePanel({ projectId, events }: SchedulePanelProps) {
             >
               이전
             </button>
-            <p className="min-w-0 truncate text-center text-sm font-semibold text-ink">
-              {currentMonth.getFullYear()}년 {currentMonth.getMonth() + 1}월
-            </p>
+            <button
+              className="min-h-10 rounded-md bg-white px-3 py-2 text-sm font-medium text-ink transition hover:text-rose"
+              onClick={() => setCurrentMonth(startOfMonth(new Date()))}
+              type="button"
+            >
+              오늘
+            </button>
             <button
               className="min-h-10 rounded-md bg-white px-3 py-2 text-sm font-medium text-ink transition hover:text-rose"
               onClick={() => setCurrentMonth((value) => addMonths(value, 1))}
@@ -140,6 +229,7 @@ export function SchedulePanel({ projectId, events }: SchedulePanelProps) {
             >
               다음
             </button>
+            </div>
           </div>
         </div>
 
@@ -189,7 +279,7 @@ export function SchedulePanel({ projectId, events }: SchedulePanelProps) {
                       className={`min-w-0 rounded-md px-1.5 py-1 text-left text-[10px] leading-4 transition hover:scale-[1.01] hover:ring-1 hover:ring-rose/25 sm:px-2 sm:text-[11px] ${
                         event.isCompleted
                           ? "bg-ink/10 text-ink/42 line-through"
-                          : "bg-rose/10 text-ink shadow-[inset_3px_0_0_rgba(179,91,99,0.28)]"
+                          : categoryStyleMap[event.category].event
                       }`}
                       key={event.id}
                       onClick={() => selectEvent(event)}
@@ -228,7 +318,11 @@ export function SchedulePanel({ projectId, events }: SchedulePanelProps) {
 
           <div className="mt-5 grid gap-3">
             {localEvents.length ? (
-              localEvents.map((event) => (
+              localEvents.map((event) => {
+                const ddayLabel = getDdayLabel(event.startsAt);
+                const categoryStyle = categoryStyleMap[event.category];
+
+                return (
                 <form
                   action={toggleProjectScheduleEventAction.bind(null, projectId)}
                   className={`relative overflow-hidden rounded-md border px-4 py-4 transition ${
@@ -254,8 +348,12 @@ export function SchedulePanel({ projectId, events }: SchedulePanelProps) {
                       type="button"
                     >
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="rounded-md bg-rose/10 px-2 py-1 text-xs font-medium text-rose">
+                        <span className={`rounded-md px-2 py-1 text-xs font-medium ${categoryStyle.chip}`}>
                           {categoryLabelMap[event.category]}
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded-md bg-white px-2 py-1 text-xs font-medium text-ink/55">
+                          <span className={`h-1.5 w-1.5 rounded-full ${categoryStyle.dot}`} />
+                          {ddayLabel}
                         </span>
                         <span className="text-xs text-ink/50">
                           {formatDateTimeLabel(event.startsAt, event.isAllDay)}
@@ -291,7 +389,8 @@ export function SchedulePanel({ projectId, events }: SchedulePanelProps) {
                     </div>
                   </div>
                 </form>
-              ))
+                );
+              })
             ) : (
               <div className="rounded-md border border-dashed border-ink/15 px-4 py-8 text-sm text-ink/55">
                 아직 등록된 일정이 없습니다. 아래 일정 추가에서 첫 일정을 남겨보세요.
@@ -646,6 +745,10 @@ function addMonths(date: Date, diff: number) {
   return new Date(date.getFullYear(), date.getMonth() + diff, 1);
 }
 
+function startOfDay(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
 function formatDateKey(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -679,4 +782,20 @@ function formatDateTimeLabel(date: Date, isAllDay: boolean) {
   }).format(date);
 
   return isAllDay ? `${base} · 종일` : `${base} · ${formatTime(date)}`;
+}
+
+function getDdayLabel(date: Date) {
+  const today = startOfDay(new Date());
+  const target = startOfDay(date);
+  const diffDays = Math.round((target.getTime() - today.getTime()) / 86_400_000);
+
+  if (diffDays === 0) {
+    return "오늘";
+  }
+
+  if (diffDays > 0) {
+    return `D-${diffDays}`;
+  }
+
+  return `D+${Math.abs(diffDays)}`;
 }

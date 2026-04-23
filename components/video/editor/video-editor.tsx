@@ -123,6 +123,23 @@ export function VideoEditor({ projectId, project }: VideoEditorProps) {
             );
           })}
         </div>
+        <div className="rounded-md border border-sage/20 bg-sage/10 p-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-ink">봄 느낌 샘플 영상</p>
+              <p className="mt-1 text-sm leading-6 text-ink/60">
+                8개의 장면과 감성 문구로 약 1분짜리 샘플 구성을 바로 채웁니다.
+              </p>
+            </div>
+            <button
+              className="rounded-md bg-ink px-4 py-3 text-sm font-medium text-white"
+              onClick={() => dispatch({ type: "apply-sample-video" })}
+              type="button"
+            >
+              샘플 구성 채우기
+            </button>
+          </div>
+        </div>
       </section>
 
       <section className="grid gap-5 rounded-md border border-ink/10 bg-white p-5 shadow-sm">
