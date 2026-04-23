@@ -41,7 +41,7 @@ export function SupportForm({
         >
           <option value="제작 문의">제작 문의</option>
           <option value="청첩장 오류">청첩장 오류</option>
-          <option value="영상 렌더링">영상 렌더링</option>
+          <option value="영상 제작">영상 제작</option>
           <option value="결제/요금제">결제/요금제</option>
           <option value="기능 제안">기능 제안</option>
         </select>

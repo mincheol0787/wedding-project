@@ -48,6 +48,9 @@ export const videoMusicPresets: Array<{
   artist: string;
   mood: string;
   description: string;
+  durationSeconds: number;
+  requiredPhotoCount: number;
+  tone: string;
   subtitleStyle: VideoSubtitleStyleId;
   demoOnly: true;
   subtitles: Subtitle[];
@@ -59,6 +62,9 @@ export const videoMusicPresets: Array<{
     artist: "도경수",
     mood: "설렘 / 밝음 / 시작",
     description: "상용 음원과 실제 가사 없이, 밝고 설레는 분위기만 참고한 샘플 구성입니다.",
+    durationSeconds: 60,
+    requiredPhotoCount: 10,
+    tone: "따뜻하고 밝은 분위기의 영상이에요.",
     subtitleStyle: "kpop-bright",
     demoOnly: true,
     subtitles: [
@@ -76,6 +82,9 @@ export const videoMusicPresets: Array<{
     artist: "오반",
     mood: "감성 / 깊은 사랑",
     description: "상용 음원과 실제 가사 없이, 차분하고 깊은 사랑의 분위기만 참고한 샘플 구성입니다.",
+    durationSeconds: 60,
+    requiredPhotoCount: 10,
+    tone: "차분하고 깊은 사랑을 담는 영상이에요.",
     subtitleStyle: "kpop-deep",
     demoOnly: true,
     subtitles: [
@@ -93,6 +102,9 @@ export const videoMusicPresets: Array<{
     artist: "Carpenters",
     mood: "로맨틱 / 클래식",
     description: "상용 음원과 실제 가사 없이, 클래식한 로맨스 무드만 참고한 영어/번역 샘플입니다.",
+    durationSeconds: 60,
+    requiredPhotoCount: 10,
+    tone: "클래식하고 로맨틱한 분위기의 영상이에요.",
     subtitleStyle: "pop-classic",
     demoOnly: true,
     subtitles: [

@@ -63,6 +63,7 @@ export type VideoEditorAction =
   | { type: "apply-sample-video" }
   | { type: "apply-music-preset"; presetId: VideoMusicPresetId }
   | { type: "add-images"; images: EditorImageAsset[] }
+  | { type: "replace-image"; imageAssetId: string; image: EditorImageAsset }
   | { type: "remove-image"; imageAssetId: string }
   | { type: "move-scene"; sceneId: string; direction: "up" | "down" }
   | { type: "update-scene"; sceneId: string; patch: Partial<EditorScene> }
@@ -132,6 +133,19 @@ export function videoEditorReducer(
         ...state,
         images: state.images.filter((image) => image.id !== action.imageAssetId),
         scenes: state.scenes.filter((scene) => scene.imageAssetId !== action.imageAssetId)
+      };
+
+    case "replace-image":
+      return {
+        ...state,
+        images: state.images.map((image) =>
+          image.id === action.imageAssetId
+            ? {
+                ...action.image,
+                id: action.imageAssetId
+              }
+            : image
+        )
       };
 
     case "move-scene": {
@@ -220,14 +234,16 @@ export function createSpringSampleVideoState(
   presetId: VideoMusicPresetId = "kpop-popcorn"
 ): VideoEditorState {
   const images: EditorImageAsset[] = [
-    ["spring-1", "The day we met", "#ead3d7"],
-    ["spring-2", "A soft beginning", "#d7dfd4"],
-    ["spring-3", "Every small promise", "#f1e7d7"],
-    ["spring-4", "Our favorite season", "#e6d7c7"],
-    ["spring-5", "Family and friends", "#eef1ed"],
-    ["spring-6", "Before the aisle", "#f4e7e2"],
-    ["spring-7", "Together, always", "#e2d3b2"],
-    ["spring-8", "Our wedding day", "#ead3d7"]
+    ["spring-1", "처음 만난 날", "#ead3d7"],
+    ["spring-2", "우리의 계절", "#d7dfd4"],
+    ["spring-3", "작은 약속들", "#f1e7d7"],
+    ["spring-4", "함께 웃던 순간", "#e6d7c7"],
+    ["spring-5", "가족과 친구들", "#eef1ed"],
+    ["spring-6", "예식 전 설렘", "#f4e7e2"],
+    ["spring-7", "두 손을 잡고", "#e2d3b2"],
+    ["spring-8", "가장 따뜻한 하루", "#ead3d7"],
+    ["spring-9", "축복의 시간", "#d7dfd4"],
+    ["spring-10", "우리의 시작", "#f1e7d7"]
   ].map(([id, title, accent]) => ({
     id,
     fileName: `${id}.jpg`,
@@ -249,7 +265,7 @@ export function createSpringSampleVideoState(
     scenes: images.map((image, index) => ({
       id: `spring-scene-${index + 1}`,
       imageAssetId: image.id,
-      durationMs: 8500,
+      durationMs: 6000,
       motion: index % 2 === 0 ? "zoom-in" : "zoom-out"
     })),
     lyricSegments: createLyricSegmentsFromPreset(presetId),

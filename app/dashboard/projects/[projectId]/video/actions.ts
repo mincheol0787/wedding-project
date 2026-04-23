@@ -36,7 +36,7 @@ export async function requestRenderAction(
 
   if (!parsed.success) {
     return {
-      error: "렌더링 입력 데이터가 올바르지 않습니다."
+      error: "영상 제작에 필요한 정보가 올바르지 않습니다."
     };
   }
 
@@ -84,7 +84,7 @@ export async function requestRenderAction(
   revalidatePath(`/dashboard/projects/${projectId}/video`);
 
   return {
-    message: "렌더링 요청을 접수했습니다. 아래 상태 목록에서 진행 상황을 확인할 수 있어요."
+    message: "영상 제작이 시작되었어요. 완료되면 서비스 내 상태 화면에서 바로 확인할 수 있어요."
   };
 }
 

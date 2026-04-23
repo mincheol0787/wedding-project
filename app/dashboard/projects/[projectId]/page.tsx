@@ -10,6 +10,14 @@ type ProjectDetailPageProps = {
   }>;
 };
 
+const videoProductionStatusLabel: Record<string, string> = {
+  CANCELED: "제작 취소됨",
+  FAILED: "제작 실패",
+  PROCESSING: "영상 제작 중",
+  QUEUED: "제작 준비 중",
+  SUCCEEDED: "제작 완료"
+};
+
 export default async function ProjectDetailPage({ params }: ProjectDetailPageProps) {
   const session = await auth();
 
@@ -26,14 +34,15 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
 
   const nextEvent = project.scheduleEvents.find((event) => !event.isCompleted) ?? null;
   const daysLeft = nextEvent ? getDaysDiff(nextEvent.startsAt) : null;
+  const latestVideoProduction = project.renderJobs[0] ?? null;
 
   return (
     <main className="min-h-screen bg-porcelain px-6 py-8">
       <section className="mx-auto max-w-7xl">
         <header className="flex flex-col gap-6 border-b border-ink/10 pb-8 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <Link className="text-sm font-medium text-ink/55" href="/dashboard">
-              대시보드로 돌아가기
+            <Link className="text-sm font-medium text-ink/55" href="/dashboard" prefetch>
+              내 작업으로 돌아가기
             </Link>
             <p className="mt-6 text-xs font-semibold uppercase tracking-[0.18em] text-rose">
               Wedding Work
@@ -61,6 +70,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
               value={project.invitationProject?.status === "PUBLISHED" ? "공개 중" : "준비 중"}
             />
             <SummaryCard
+              accent={daysLeft !== null && daysLeft <= 3}
               label="가까운 일정"
               value={
                 nextEvent
@@ -69,7 +79,6 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                     : nextEvent.title
                   : "등록된 일정 없음"
               }
-              accent={daysLeft !== null && daysLeft <= 3}
             />
           </div>
         </header>
@@ -96,10 +105,10 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                   ) : null}
                 </div>
                 <div>
-                  <dt className="text-ink/45">최근 렌더링</dt>
+                  <dt className="text-ink/45">최근 영상 제작</dt>
                   <dd className="mt-1 font-medium text-ink">
-                    {project.renderJobs[0]
-                      ? `${project.renderJobs[0].status} · ${project.renderJobs[0].progress}%`
+                    {latestVideoProduction
+                      ? `${videoProductionStatusLabel[latestVideoProduction.status] ?? latestVideoProduction.status} · ${latestVideoProduction.progress}%`
                       : "아직 없음"}
                   </dd>
                 </div>
@@ -109,14 +118,16 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                 <Link
                   className="rounded-md bg-ink px-4 py-3 text-center text-sm font-medium text-white"
                   href={`/dashboard/projects/${project.id}/invitation`}
+                  prefetch
                 >
-                  모바일 청첩장 편집
+                  모바일 청첩장 수정
                 </Link>
                 <Link
                   className="rounded-md border border-ink/15 px-4 py-3 text-center text-sm font-medium text-ink"
                   href={`/dashboard/projects/${project.id}/video`}
+                  prefetch
                 >
-                  식전영상 편집
+                  식전영상 만들기
                 </Link>
                 <Link
                   className="rounded-md border border-ink/15 px-4 py-3 text-center text-sm font-medium text-ink"
@@ -142,8 +153,8 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                 <h2 className="mt-2 text-xl font-semibold">{nextEvent.title}</h2>
                 <p className="mt-2 text-sm leading-6 text-ink/70">
                   {daysLeft === 0
-                    ? "오늘 일정이 있습니다. 준비물을 한 번 더 확인해보세요."
-                    : `${daysLeft}일 안에 다가오는 일정입니다. 미리 체크해두면 좋아요.`}
+                    ? "오늘 일정이 있습니다. 준비물을 한 번 더 확인해 보세요."
+                    : `${daysLeft}일 뒤에 다가오는 일정입니다. 미리 체크해두면 좋아요.`}
                 </p>
               </section>
             ) : null}
@@ -168,13 +179,13 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
 }
 
 function SummaryCard({
+  accent = false,
   label,
-  value,
-  accent = false
+  value
 }: {
+  accent?: boolean;
   label: string;
   value: string;
-  accent?: boolean;
 }) {
   return (
     <div

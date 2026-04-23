@@ -21,7 +21,7 @@ export default async function AdminPage() {
             </p>
             <h1 className="mt-3 text-4xl font-semibold text-ink">관리자 페이지</h1>
             <p className="mt-4 max-w-2xl leading-7 text-ink/65">
-              사용자, 제작 작업, 렌더링 작업, 템플릿과 기본 통계를 확인합니다.
+              사용자, 제작 작업, 영상 제작 작업, 템플릿과 기본 통계를 확인합니다.
             </p>
           </div>
           <div className="rounded-md border border-ink/10 bg-white px-5 py-4 text-sm text-ink/65">
@@ -41,9 +41,9 @@ export default async function AdminPage() {
             sub={`${data.stats.publishedInvitationCount} published`}
           />
           <StatCard
-            label="렌더링 작업"
+            label="영상 제작 작업"
             value={data.stats.renderJobCount}
-            sub={`${data.stats.failedRenderJobCount} failed`}
+            sub={`실패 ${data.stats.failedRenderJobCount}건`}
           />
           <StatCard
             label="템플릿"
@@ -58,7 +58,7 @@ export default async function AdminPage() {
         </section>
 
         <section className="mt-8 rounded-md border border-ink/10 bg-white p-5 shadow-sm">
-          <h2 className="text-2xl font-semibold text-ink">렌더링 상태 요약</h2>
+          <h2 className="text-2xl font-semibold text-ink">영상 제작 상태 요약</h2>
           <div className="mt-4 flex flex-wrap gap-2">
             {data.stats.renderJobsByStatus.length > 0 ? (
               data.stats.renderJobsByStatus.map((item) => (
@@ -70,7 +70,7 @@ export default async function AdminPage() {
                 </span>
               ))
             ) : (
-              <p className="text-sm text-ink/55">아직 렌더링 작업이 없습니다.</p>
+              <p className="text-sm text-ink/55">아직 영상 제작 작업이 없습니다.</p>
             )}
           </div>
         </section>
@@ -109,7 +109,7 @@ export default async function AdminPage() {
                   <th className="py-3 pr-4 font-medium">이름</th>
                   <th className="py-3 pr-4 font-medium">권한</th>
                   <th className="py-3 pr-4 font-medium">작업</th>
-                  <th className="py-3 pr-4 font-medium">렌더링</th>
+                  <th className="py-3 pr-4 font-medium">영상 제작</th>
                   <th className="py-3 pr-4 font-medium">가입일</th>
                 </tr>
               </thead>
@@ -157,7 +157,7 @@ export default async function AdminPage() {
                 <div className="mt-4 grid gap-2 text-sm text-ink/60 md:grid-cols-4">
                   <p>예식일: {project.weddingDate ? formatDate(project.weddingDate) : "미정"}</p>
                   <p>미디어: {project._count.mediaAssets}</p>
-                  <p>렌더링: {project._count.renderJobs}</p>
+                  <p>영상 제작: {project._count.renderJobs}</p>
                   <p>생성일: {formatDate(project.createdAt)}</p>
                 </div>
               </article>
@@ -166,7 +166,7 @@ export default async function AdminPage() {
           </div>
         </AdminSection>
 
-        <AdminSection title="렌더링 작업 목록">
+        <AdminSection title="영상 제작 작업 목록">
           <div className="grid gap-3">
             {data.renderJobs.map((job) => (
               <article className="rounded-md border border-ink/10 bg-porcelain/60 p-4" key={job.id}>
@@ -200,7 +200,7 @@ export default async function AdminPage() {
                 ) : null}
               </article>
             ))}
-            {data.renderJobs.length === 0 ? <EmptyText text="렌더링 작업이 없습니다." /> : null}
+            {data.renderJobs.length === 0 ? <EmptyText text="영상 제작 작업이 없습니다." /> : null}
           </div>
         </AdminSection>
 

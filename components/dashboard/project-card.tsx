@@ -39,6 +39,14 @@ const invitationStatusLabel: Record<InvitationStatus, string> = {
   UNPUBLISHED: "비공개"
 };
 
+const videoProductionStatusLabel: Record<string, string> = {
+  CANCELED: "제작 취소됨",
+  FAILED: "제작 실패",
+  PROCESSING: "영상 제작 중",
+  QUEUED: "제작 준비 중",
+  SUCCEEDED: "제작 완료"
+};
+
 export function ProjectCard({
   id,
   title,
@@ -83,11 +91,11 @@ export function ProjectCard({
           <dd className="mt-1 font-medium text-ink">{formattedDate}</dd>
         </div>
         <div>
-          <dt className="text-ink/45">미디어</dt>
+          <dt className="text-ink/45">사진/파일</dt>
           <dd className="mt-1 font-medium text-ink">{mediaCount}개</dd>
         </div>
         <div>
-          <dt className="text-ink/45">렌더링</dt>
+          <dt className="text-ink/45">영상 제작</dt>
           <dd className="mt-1 font-medium text-ink">{renderJobCount}건</dd>
         </div>
       </dl>
@@ -100,7 +108,7 @@ export function ProjectCard({
           className="rounded-md border border-ink/15 px-4 py-2 text-sm font-medium text-ink"
           href={`/dashboard/projects/${id}/invitation`}
         >
-          청첩장 편집
+          청첩장 수정
         </FastLink>
         <FastLink
           className="rounded-md border border-ink/15 px-4 py-2 text-sm font-medium text-ink"
@@ -117,14 +125,16 @@ export function ProjectCard({
           className="rounded-md border border-ink/15 px-4 py-2 text-sm font-medium text-ink"
           href={`/dashboard/projects/${id}/video`}
         >
-          영상 편집
+          영상 만들기
         </FastLink>
       </div>
 
       {latestRenderJob ? (
         <div className="mt-5 rounded-md bg-porcelain p-3">
           <div className="flex items-center justify-between gap-3 text-sm">
-            <span className="font-medium text-ink">최근 렌더링 {latestRenderJob.status}</span>
+            <span className="font-medium text-ink">
+              최근 영상 제작 {videoProductionStatusLabel[latestRenderJob.status] ?? latestRenderJob.status}
+            </span>
             <span className="text-ink/55">{latestRenderJob.progress}%</span>
           </div>
           <div className="mt-2 h-2 overflow-hidden rounded-full bg-white">
