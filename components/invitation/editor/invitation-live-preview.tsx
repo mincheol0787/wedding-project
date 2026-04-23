@@ -17,6 +17,8 @@ type InvitationLivePreviewProps = {
   contactPhoneBride: string;
   greeting: string;
   venueName: string;
+  venueAddress: string;
+  venueDetail: string;
   eventDate: string;
   gallery: InvitationGalleryItem[];
   config: InvitationConfig;
@@ -31,6 +33,8 @@ export function InvitationLivePreview({
   contactPhoneBride,
   greeting,
   venueName,
+  venueAddress,
+  venueDetail,
   eventDate,
   gallery,
   config,
@@ -39,15 +43,14 @@ export function InvitationLivePreview({
   const template =
     invitationTemplates.find((item) => item.id === config.templateId) ?? invitationTemplates[0];
   const previewGallery = gallery.slice(0, 3);
-  const coverImage = gallery.find((item) => item.id === config.galleryOptions.mainImageId) ?? gallery[0];
+  const coverImage =
+    gallery.find((item) => item.id === config.galleryOptions.mainImageId) ?? gallery[0];
   const [draggingSectionId, setDraggingSectionId] = useState<InvitationSectionId | null>(null);
 
   function wrapPreviewSection(sectionId: InvitationSectionId, children: ReactNode) {
     return (
       <div
-        className={`transition ${
-          draggingSectionId === sectionId ? "bg-sage/10 opacity-80" : ""
-        }`}
+        className={`transition ${draggingSectionId === sectionId ? "bg-sage/10 opacity-80" : ""}`}
         data-preview-section={sectionId}
         draggable={Boolean(onMoveSection)}
         key={sectionId}
@@ -63,7 +66,7 @@ export function InvitationLivePreview({
             onMoveSection?.(draggingSectionId, sectionId);
           }
         }}
-        title={onMoveSection ? "드래그해서 화면 순서를 바꿀 수 있습니다." : undefined}
+        title={onMoveSection ? "드래그해서 화면 순서를 바꿀 수 있어요." : undefined}
       >
         {children}
       </div>
@@ -74,10 +77,8 @@ export function InvitationLivePreview({
     <div className="rounded-md border border-ink/10 bg-[#f7f2ed] p-4 text-ink shadow-[0_20px_70px_rgba(36,36,36,0.08)]">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-rose">
-            미리보기
-          </p>
-          <p className="mt-1 text-sm text-ink/55">수정한 내용이 바로 반영됩니다.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-rose">Preview</p>
+          <p className="mt-1 text-sm text-ink/55">지금 수정한 내용이 바로 반영됩니다.</p>
         </div>
         <span className="rounded-md border border-ink/10 bg-white px-3 py-1 text-xs font-medium text-ink/65">
           {template.name}
@@ -148,6 +149,9 @@ export function InvitationLivePreview({
                 <p className="mt-3 whitespace-pre-wrap text-center text-sm leading-6 text-ink/65">
                   {greeting || config.copy.heroDescription}
                 </p>
+                <p className="mt-3 text-center text-xs leading-5 text-ink/42">
+                  {config.copy.heroDescription}
+                </p>
               </section>
             );
           }
@@ -201,11 +205,17 @@ export function InvitationLivePreview({
                   {config.copy.locationTitle}
                 </h4>
                 <div className="mt-4 rounded-md bg-[#f4f7f2] p-4 text-sm text-ink/70">
-                  <p className="font-medium text-ink">{venueName || "예식장명"}</p>
+                  <p className="font-medium text-ink">{venueName || "예식 장소"}</p>
+                  {venueAddress ? <p className="mt-2 leading-6">{venueAddress}</p> : null}
+                  {venueDetail ? <p className="mt-1 leading-6 text-ink/56">{venueDetail}</p> : null}
                   {config.visibility.venueGuide ? (
-                    <p className="mt-2">
-                      {config.venueGuide.hall || "예식장 안내가 이곳에 표시됩니다."}
-                    </p>
+                    <div className="mt-3 grid gap-1 text-xs text-ink/58">
+                      {config.venueGuide.hall ? <p>홀: {config.venueGuide.hall}</p> : null}
+                      {config.venueGuide.floor ? <p>층: {config.venueGuide.floor}</p> : null}
+                      {config.venueGuide.parking ? <p>주차: {config.venueGuide.parking}</p> : null}
+                      {config.venueGuide.meal ? <p>식사: {config.venueGuide.meal}</p> : null}
+                      {config.venueGuide.extra ? <p>{config.venueGuide.extra}</p> : null}
+                    </div>
                   ) : null}
                 </div>
               </section>
@@ -224,12 +234,12 @@ export function InvitationLivePreview({
                 <div className="mt-4 grid gap-2 text-sm text-ink/70">
                   {contactPhoneGroom ? (
                     <div className="rounded-md border border-ink/10 px-3 py-2">
-                      신랑측 {contactPhoneGroom}
+                      신랑 측 {contactPhoneGroom}
                     </div>
                   ) : null}
                   {contactPhoneBride ? (
                     <div className="rounded-md border border-ink/10 px-3 py-2">
-                      신부측 {contactPhoneBride}
+                      신부 측 {contactPhoneBride}
                     </div>
                   ) : null}
                 </div>
@@ -248,8 +258,15 @@ export function InvitationLivePreview({
                 <h4 className="text-center text-lg font-semibold text-ink">
                   {config.copy.giftTitle}
                 </h4>
-                <div className="mt-4 rounded-md border border-ink/10 p-3 text-sm text-ink/70">
-                  {config.bankAccounts[0].bankName || "계좌 정보"}
+                <div className="mt-4 grid gap-2">
+                  {config.bankAccounts.slice(0, 2).map((account) => (
+                    <div className="rounded-md border border-ink/10 p-3 text-sm text-ink/70" key={account.id}>
+                      <p className="font-medium text-ink">{account.label || account.bankName || "계좌 정보"}</p>
+                      {account.bankName ? <p className="mt-1">{account.bankName}</p> : null}
+                      {account.accountNumber ? <p className="mt-1">{account.accountNumber}</p> : null}
+                      {account.holderName ? <p className="mt-1 text-ink/54">{account.holderName}</p> : null}
+                    </div>
+                  ))}
                 </div>
               </section>
             );
@@ -266,8 +283,11 @@ export function InvitationLivePreview({
                 <h4 className="text-center text-lg font-semibold text-ink">
                   {config.copy.rsvpTitle}
                 </h4>
+                <p className="mt-2 text-center text-sm leading-6 text-ink/58">
+                  {config.copy.rsvpDescription}
+                </p>
                 <div className="mt-4 rounded-md bg-[#f4f7f2] p-4 text-center text-sm text-ink/60">
-                  참석 여부 폼이 여기에 표시됩니다.
+                  참석 여부 입력 영역이 이곳에 표시됩니다.
                 </div>
               </section>
             );
@@ -284,8 +304,11 @@ export function InvitationLivePreview({
                 <h4 className="text-center text-lg font-semibold text-ink">
                   {config.copy.guestbookTitle}
                 </h4>
+                <p className="mt-2 text-center text-sm leading-6 text-ink/58">
+                  {config.copy.guestbookDescription}
+                </p>
                 <div className="mt-4 rounded-md bg-[#f4f7f2] p-4 text-center text-sm text-ink/60">
-                  방명록이 여기에 표시됩니다.
+                  방명록 영역이 이곳에 표시됩니다.
                 </div>
               </section>
             );

@@ -29,16 +29,32 @@ export const videoTemplates: Array<{
 export const videoMusicPresetIds = ["kpop-popcorn", "kpop-flower", "pop-close-to-you"] as const;
 export const videoMusicCategories = ["K_POP", "POP"] as const;
 export const videoSubtitleStyleIds = ["kpop-bright", "kpop-deep", "pop-classic"] as const;
+export const videoSubtitleColorThemeIds = ["peach-glow", "rose-gold", "ivory-light"] as const;
+export const videoSubtitlePositionIds = ["center", "bottom"] as const;
+export const videoSubtitleSizeIds = ["sm", "md", "lg"] as const;
 
 export type VideoMusicPresetId = (typeof videoMusicPresetIds)[number];
 export type VideoMusicCategory = (typeof videoMusicCategories)[number];
 export type VideoSubtitleStyleId = (typeof videoSubtitleStyleIds)[number];
+export type VideoSubtitleColorThemeId = (typeof videoSubtitleColorThemeIds)[number];
+export type VideoSubtitlePositionId = (typeof videoSubtitlePositionIds)[number];
+export type VideoSubtitleSizeId = (typeof videoSubtitleSizeIds)[number];
 
 export type Subtitle = {
   start: number;
   end: number;
   text: string;
   translation?: string;
+};
+
+export const defaultSubtitleAppearance = {
+  colorTheme: "peach-glow",
+  position: "bottom",
+  size: "md"
+} as const satisfies {
+  colorTheme: VideoSubtitleColorThemeId;
+  position: VideoSubtitlePositionId;
+  size: VideoSubtitleSizeId;
 };
 
 export const videoMusicPresets: Array<{
@@ -160,7 +176,8 @@ export const videoRenderInputSchema = z.object({
     id: z.string(),
     title: z.string(),
     groomName: z.string().optional(),
-    brideName: z.string().optional()
+    brideName: z.string().optional(),
+    weddingDate: z.string().optional()
   }),
   composition: z.object({
     width: z.number().int().positive(),
@@ -214,7 +231,12 @@ export const videoRenderInputSchema = z.object({
       startMs: z.number().int().nonnegative(),
       endMs: z.number().int().positive()
     })
-  )
+  ),
+  subtitleAppearance: z.object({
+    colorTheme: z.enum(videoSubtitleColorThemeIds),
+    position: z.enum(videoSubtitlePositionIds),
+    size: z.enum(videoSubtitleSizeIds)
+  })
 });
 
 export type VideoRenderInput = z.infer<typeof videoRenderInputSchema>;
@@ -245,7 +267,8 @@ export const defaultVideoRenderInput: VideoRenderInput = {
     id: "preview",
     title: "Our Wedding",
     groomName: "Groom",
-    brideName: "Bride"
+    brideName: "Bride",
+    weddingDate: new Date().toISOString()
   },
   composition: {
     width: 1920,
@@ -347,5 +370,6 @@ export const defaultVideoRenderInput: VideoRenderInput = {
       startMs: 11000,
       endMs: 14500
     }
-  ]
+  ],
+  subtitleAppearance: defaultSubtitleAppearance
 };

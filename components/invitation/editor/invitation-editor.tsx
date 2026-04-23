@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useActionState, useEffect, useMemo, useRef, useState } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState, type SyntheticEvent } from "react";
 import { InvitationLivePreview } from "@/components/invitation/editor/invitation-live-preview";
 import {
   saveInvitationAction,
@@ -308,10 +308,44 @@ export function InvitationEditor({
     const previewPanel = previewScrollRef.current;
     const target = previewPanel?.querySelector<HTMLElement>(`[data-preview-section="${sectionId}"]`);
 
-    target?.scrollIntoView({
-      behavior: "smooth",
-      block: "start"
+    if (!previewPanel || !target) {
+      return;
+    }
+
+    const containerRect = previewPanel.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const nextTop = previewPanel.scrollTop + (targetRect.top - containerRect.top) - 16;
+
+    previewPanel.scrollTo({
+      top: Math.max(0, nextTop),
+      behavior: "smooth"
     });
+  }
+
+  function syncPreviewFromEditorEvent(event: SyntheticEvent<HTMLElement>, trigger: "click" | "focus") {
+    const target = event.target;
+
+    if (!(target instanceof HTMLElement)) {
+      return;
+    }
+
+    if (trigger === "click" && target.closest("button, a")) {
+      return;
+    }
+
+    if (trigger === "focus" && !target.matches("input, textarea, select")) {
+      return;
+    }
+
+    const previewSection = target.closest<HTMLElement>("[data-preview-target]")?.dataset.previewTarget as
+      | PreviewTargetId
+      | undefined;
+
+    if (!previewSection) {
+      return;
+    }
+
+    scrollPreviewToSection(previewSection);
   }
 
   async function copyPublicUrl() {
@@ -554,10 +588,10 @@ export function InvitationEditor({
       <input name="mapLat" type="hidden" value={form.mapLat} />
       <input name="mapLng" type="hidden" value={form.mapLng} />
 
-      <aside className="min-w-0 lg:self-start">
+      <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
         <div className="rounded-md border border-ink/10 bg-[#f7f2ed]/95 p-3 shadow-[0_18px_60px_rgba(36,36,36,0.06)]">
           <div
-            className="overflow-visible pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="max-h-[calc(100vh-8rem)] overflow-y-auto pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             ref={previewScrollRef}
           >
             <InvitationLivePreview
@@ -571,17 +605,22 @@ export function InvitationEditor({
               groomName={form.groomName}
               onMoveSection={moveSection}
               title={form.title}
+              venueAddress={form.venueAddress}
+              venueDetail={form.venueDetail}
               venueName={form.venueName}
             />
           </div>
         </div>
       </aside>
 
-      <div className="min-w-0 grid gap-5 lg:pr-1">
+      <div
+        className="min-w-0 grid gap-5 lg:pr-1"
+        onClickCapture={(event) => syncPreviewFromEditorEvent(event, "click")}
+        onFocusCapture={(event) => syncPreviewFromEditorEvent(event, "focus")}
+      >
         <div
           className="rounded-md border border-ink/10 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(36,36,36,0.05)]"
-          onClick={() => scrollPreviewToSection("cover")}
-          onFocusCapture={() => scrollPreviewToSection("cover")}
+          data-preview-target="cover"
         >
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sage">Content Editor</p>
           <div className="mt-2 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
@@ -597,8 +636,7 @@ export function InvitationEditor({
 
         <section
           className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6"
-          onClick={() => scrollPreviewToSection("cover")}
-          onFocusCapture={() => scrollPreviewToSection("cover")}
+          data-preview-target="cover"
         >
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
@@ -707,8 +745,7 @@ export function InvitationEditor({
 
         <section
           className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6"
-          onClick={() => scrollPreviewToSection("cover")}
-          onFocusCapture={() => scrollPreviewToSection("cover")}
+          data-preview-target="cover"
         >
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Cover</p>
@@ -792,8 +829,7 @@ export function InvitationEditor({
 
         <section
           className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6"
-          onClick={() => scrollPreviewToSection("intro")}
-          onFocusCapture={() => scrollPreviewToSection("intro")}
+          data-preview-target="intro"
         >
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Visibility</p>
@@ -851,8 +887,7 @@ export function InvitationEditor({
 
         <section
           className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6"
-          onClick={() => scrollPreviewToSection("cover")}
-          onFocusCapture={() => scrollPreviewToSection("cover")}
+          data-preview-target="cover"
         >
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Couple</p>
@@ -896,8 +931,7 @@ export function InvitationEditor({
 
         <section
           className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6"
-          onClick={() => scrollPreviewToSection("location")}
-          onFocusCapture={() => scrollPreviewToSection("location")}
+          data-preview-target="location"
         >
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Venue</p>
@@ -1000,8 +1034,7 @@ export function InvitationEditor({
 
         <section
           className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6"
-          onClick={() => scrollPreviewToSection("gallery")}
-          onFocusCapture={() => scrollPreviewToSection("gallery")}
+          data-preview-target="gallery"
         >
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Gallery</p>
@@ -1134,8 +1167,7 @@ export function InvitationEditor({
 
         <section
           className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6"
-          onClick={() => scrollPreviewToSection("intro")}
-          onFocusCapture={() => scrollPreviewToSection("intro")}
+          data-preview-target="intro"
         >
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
@@ -1215,8 +1247,7 @@ export function InvitationEditor({
 
         <section
           className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6"
-          onClick={() => scrollPreviewToSection("gift")}
-          onFocusCapture={() => scrollPreviewToSection("gift")}
+          data-preview-target="gift"
         >
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Gift</p>

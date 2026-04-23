@@ -143,6 +143,7 @@ export async function getWeddingProjectForVideoEditor(userId: string, projectId:
       title: true,
       groomName: true,
       brideName: true,
+      weddingDate: true,
       videoProject: {
         select: {
           id: true,

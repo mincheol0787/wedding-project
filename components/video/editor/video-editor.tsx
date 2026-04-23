@@ -14,17 +14,26 @@ import {
   buildVideoRenderInput,
   createId,
   createInitialVideoEditorState,
+  resolveLyricTemplate,
   videoEditorReducer,
   type EditorAudioAsset,
   type EditorImageAsset,
   type VideoEditorState
 } from "@/lib/video/editor-state";
-import { videoMusicPresets, type VideoMusicPresetId } from "@/lib/video/render-input";
+import {
+  videoMusicPresets,
+  type VideoMusicPresetId,
+  type VideoSubtitleColorThemeId,
+  type VideoSubtitlePositionId,
+  type VideoSubtitleSizeId,
+  type VideoSubtitleStyleId
+} from "@/lib/video/render-input";
 import { RenderRequestPanel } from "@/components/video/editor/render-request-panel";
 
 type VideoEditorProps = {
   projectId: string;
   project: VideoEditorState["project"];
+  onRenderRequested?: () => void;
 };
 
 type VideoStepId = "music" | "upload" | "arrange" | "lyrics";
@@ -58,7 +67,56 @@ const videoSteps: VideoStep[] = [
   }
 ];
 
-export function VideoEditor({ projectId, project }: VideoEditorProps) {
+const subtitleStyleOptions: Array<{
+  id: VideoSubtitleStyleId;
+  label: string;
+  description: string;
+}> = [
+  {
+    id: "kpop-bright",
+    label: "밝고 산뜻한 자막",
+    description: "또렷한 산세리프와 화사한 톤으로 경쾌하게 보여줘요."
+  },
+  {
+    id: "kpop-deep",
+    label: "차분한 감성 자막",
+    description: "로맨틱한 색감과 깊은 분위기로 한층 더 따뜻하게 표현해요."
+  },
+  {
+    id: "pop-classic",
+    label: "클래식 자막",
+    description: "세리프 중심의 우아한 타이포로 고급스럽게 정리해요."
+  }
+];
+
+const subtitleColorThemeOptions: Array<{
+  id: VideoSubtitleColorThemeId;
+  label: string;
+  preview: string;
+}> = [
+  { id: "peach-glow", label: "피치 글로우", preview: "linear-gradient(135deg,#ffe7de,#ffd5b8)" },
+  { id: "rose-gold", label: "로즈 골드", preview: "linear-gradient(135deg,#f5d3dd,#d9b1a3)" },
+  { id: "ivory-light", label: "아이보리", preview: "linear-gradient(135deg,#fff7ea,#fff1d4)" }
+];
+
+const subtitlePositionOptions: Array<{
+  id: VideoSubtitlePositionId;
+  label: string;
+}> = [
+  { id: "center", label: "중앙" },
+  { id: "bottom", label: "하단" }
+];
+
+const subtitleSizeOptions: Array<{
+  id: VideoSubtitleSizeId;
+  label: string;
+}> = [
+  { id: "sm", label: "작게" },
+  { id: "md", label: "기본" },
+  { id: "lg", label: "크게" }
+];
+
+export function VideoEditor({ projectId, project, onRenderRequested }: VideoEditorProps) {
   const [state, dispatch] = useReducer(
     videoEditorReducer,
     project,
@@ -86,6 +144,10 @@ export function VideoEditor({ projectId, project }: VideoEditorProps) {
   const activeImage = activeScene
     ? state.images.find((image) => image.id === activeScene.imageAssetId)
     : undefined;
+  const selectedSubtitleStyle =
+    state.lyricSegments.find((segment) => segment.style)?.style ??
+    state.musicPreset?.subtitleStyle ??
+    "kpop-bright";
 
   useEffect(() => {
     const objectUrls = objectUrlsRef.current;
@@ -288,6 +350,12 @@ export function VideoEditor({ projectId, project }: VideoEditorProps) {
             <LyricsStep
               lyricSegments={state.lyricSegments}
               onAddLyric={() => dispatch({ type: "add-lyric" })}
+              onApplyStyle={(style) =>
+                dispatch({
+                  type: "apply-lyric-style",
+                  style
+                })
+              }
               onRefreshPresetLyrics={() => {
                 if (!state.musicPreset) {
                   return;
@@ -311,9 +379,18 @@ export function VideoEditor({ projectId, project }: VideoEditorProps) {
                   patch
                 })
               }
+              onUpdateSubtitleAppearance={(patch) =>
+                dispatch({
+                  type: "update-subtitle-appearance",
+                  patch
+                })
+              }
+              project={state.project}
               selectedPresetLabel={
                 state.musicPreset ? `${state.musicPreset.artist} - ${state.musicPreset.title}` : undefined
               }
+              selectedStyle={selectedSubtitleStyle}
+              subtitleAppearance={state.subtitleAppearance}
             />
           ) : null}
 
@@ -332,10 +409,26 @@ export function VideoEditor({ projectId, project }: VideoEditorProps) {
             renderInputDurationMs={renderInput.composition.durationMs}
             requiredPhotoCount={requiredPhotoCount}
             selectedPreset={selectedPreset}
+            subtitleAppearance={state.subtitleAppearance}
+            subtitlePreviewText={resolveLyricTemplate(
+              state.lyricSegments.find((segment) => segment.text.trim().length > 0)?.text ?? "",
+              state.project
+            )}
+            subtitlePreviewTranslation={
+              state.lyricSegments.find((segment) => segment.text.trim().length > 0)?.translation
+                ? resolveLyricTemplate(
+                    state.lyricSegments.find((segment) => segment.text.trim().length > 0)?.translation ?? "",
+                    state.project
+                  )
+                : undefined
+            }
+            subtitleStyle={selectedSubtitleStyle}
             state={state}
             totalStepCount={videoSteps.length}
           />
           <RenderRequestPanel
+            estimatedTimeLabel={getEstimatedProductionTimeLabel(state.images.length)}
+            onRequested={onRenderRequested}
             projectId={projectId}
             renderInput={renderInput}
             requiredPhotoCount={requiredPhotoCount}
