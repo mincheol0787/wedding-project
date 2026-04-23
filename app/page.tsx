@@ -21,7 +21,7 @@ const features = [
 ];
 
 const featureSteps = [
-  ["01", "프로젝트 생성", "신랑, 신부, 예식일만 입력하면 청첩장과 영상 작업 공간이 열립니다."],
+  ["01", "작업 시작", "신랑, 신부, 예식일만 입력하면 청첩장과 영상 제작 화면이 열립니다."],
   ["02", "초대장 편집", "사진, 문구, 지도, 계좌, 섹션 순서를 원하는 흐름으로 맞춥니다."],
   ["03", "영상 제작", "사진 슬라이드와 문구 타임라인을 구성하고 렌더링 요청까지 이어집니다."]
 ];
@@ -59,10 +59,10 @@ export default async function HomePage() {
   const userName = session?.user?.name ?? session?.user?.email;
 
   const primaryCta = isAuthenticated
-    ? { href: "/dashboard", label: "내 프로젝트 보기" }
+    ? { href: "/dashboard", label: "내 작업 보기" }
     : { href: "/login", label: "무료로 시작하기" };
   const secondaryCta = isAuthenticated
-    ? { href: "/dashboard/projects/new", label: "새 프로젝트 만들기" }
+    ? { href: "/dashboard/projects/new", label: "새 청첩장 만들기" }
     : { href: "/login", label: "로그인" };
   const tertiaryCta = isAuthenticated
     ? { href: "/dashboard", label: "청첩장 편집하기" }
@@ -93,7 +93,7 @@ export default async function HomePage() {
               <h1 className="mt-6 text-5xl font-semibold leading-[1.02] md:text-7xl">
                 Love becomes
                 <br />
-                a project
+                a letter
               </h1>
               <p className="mt-6 max-w-2xl text-base leading-8 text-white/84 md:text-lg">
                 모바일 청첩장, 식전영상, 일정 관리를 한 흐름으로 연결해 예비부부의 준비 시간을 더 차분하게 만듭니다.
@@ -135,7 +135,7 @@ export default async function HomePage() {
                   화면은 단순해야 합니다
                 </h2>
                 <p className="mt-5 text-base leading-8 text-ink/66">
-                  MVP는 제작 흐름을 빠르게 만드는 데 집중합니다. 청첩장 정보, 사진, 지도, 참석 여부, 식전영상 데이터를 프로젝트 기준으로 묶어 관리합니다.
+                  MVP는 제작 흐름을 빠르게 만드는 데 집중합니다. 청첩장 정보, 사진, 지도, 참석 여부, 식전영상 데이터를 하나의 작업 흐름으로 묶어 관리합니다.
                 </p>
               </div>
               <div className="grid gap-4 md:grid-cols-3" data-reveal>
@@ -317,7 +317,7 @@ export default async function HomePage() {
               더 많은 도구가 아니라 더 쉬운 흐름입니다
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-ink/66">
-              첫 프로젝트를 만들고, 청첩장과 식전영상을 같은 데이터 위에서 이어서 준비해보세요.
+              첫 작업을 만들고, 청첩장과 식전영상을 같은 데이터 위에서 이어서 준비해보세요.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link
@@ -347,12 +347,12 @@ export default async function HomePage() {
         <div className="mx-auto grid max-w-7xl gap-6 text-sm text-ink/58 md:grid-cols-[1fr_auto] md:items-center">
           <div>
             <p className="text-lg font-semibold text-ink">MC Page</p>
-            <p className="mt-2">모바일 청첩장과 식전영상을 함께 준비하는 웨딩 프로젝트 SaaS</p>
+            <p className="mt-2">모바일 청첩장과 식전영상을 함께 준비하는 웨딩 제작 SaaS</p>
           </div>
           <div className="flex flex-wrap gap-4">
             <Link href="/support">고객센터</Link>
             <Link href="/i/sample">샘플 보기</Link>
-            <Link href="/dashboard">제작 내역</Link>
+            <Link href="/dashboard">내 작업</Link>
           </div>
         </div>
       </footer>

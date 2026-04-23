@@ -7,7 +7,7 @@ import { createWeddingProject } from "@/server/projects/service";
 import { z } from "zod";
 
 const createProjectSchema = z.object({
-  title: z.string().min(1, "프로젝트 이름을 입력해 주세요."),
+  title: z.string().min(1, "작업 이름을 입력해 주세요."),
   groomName: z.string().min(1, "신랑 이름을 입력해 주세요."),
   brideName: z.string().min(1, "신부 이름을 입력해 주세요."),
   weddingDate: z.string().optional()

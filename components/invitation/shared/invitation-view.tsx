@@ -103,7 +103,7 @@ function SampleInvitationView({
 }) {
   return (
     <main className={`min-h-screen bg-[#f7f2ed] text-ink ${fontClass}`}>
-      <section className="mx-auto max-w-7xl px-4 py-7 sm:px-6 lg:py-10">
+      <section className="mx-auto max-w-[1500px] px-4 py-7 sm:px-6 lg:py-10">
         <div className="mb-7 grid gap-5 rounded-md border border-ink/10 bg-white/82 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.08)] backdrop-blur lg:grid-cols-[1fr_auto] lg:items-end lg:p-7">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-rose">
@@ -133,15 +133,20 @@ function SampleInvitationView({
           </div>
         </div>
 
-        <div className="grid gap-7 lg:grid-cols-[minmax(320px,430px)_minmax(0,1fr)] lg:items-start">
-          <aside className="lg:sticky lg:top-24">
-            <article className="overflow-hidden rounded-md border border-black/5 bg-white shadow-[0_20px_70px_rgba(36,36,36,0.1)]">
+        <div className="grid gap-7 lg:grid-cols-[minmax(340px,420px)_minmax(0,1fr)] lg:items-start xl:grid-cols-[minmax(380px,440px)_minmax(0,1fr)]">
+          <aside className="min-w-0 lg:sticky lg:top-24">
+            <article className="max-h-[calc(100vh-7rem)] min-w-0 overflow-y-auto rounded-md border border-black/5 bg-white shadow-[0_20px_70px_rgba(36,36,36,0.1)]">
               <InvitationHero
                 coverImage={coverImage}
                 eventDate={eventDate}
                 invitation={invitation}
                 minHeightClass="min-h-[500px]"
               />
+              <div className="grid gap-0">
+                {sections.map((sectionId) => (
+                  <SectionRenderer invitation={invitation} key={sectionId} sectionId={sectionId} />
+                ))}
+              </div>
             </article>
             <div className="mt-4 grid grid-cols-3 gap-2 text-center">
               <SampleStat label="섹션" value={`${sections.length}개`} />
@@ -171,11 +176,11 @@ function SampleInvitationView({
 
             {sections.map((sectionId, index) => (
               <article
-                className="rounded-md border border-ink/10 bg-white shadow-[0_16px_54px_rgba(36,36,36,0.06)]"
+                className="min-w-0 overflow-hidden rounded-md border border-ink/10 bg-white shadow-[0_16px_54px_rgba(36,36,36,0.06)]"
                 id={`sample-section-${sectionId}`}
                 key={sectionId}
               >
-                <div className="flex items-center justify-between gap-4 border-b border-[#f3ebe5] bg-[#fbf8f4] px-5 py-4">
+                <div className="border-b border-[#f3ebe5] bg-[#fbf8f4] px-5 py-4">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-rose">
                       {String(index + 1).padStart(2, "0")}
@@ -184,12 +189,6 @@ function SampleInvitationView({
                       {getSectionLabel(sectionId)}
                     </h3>
                   </div>
-                  <a
-                    className="rounded-md border border-ink/10 bg-white px-3 py-2 text-xs font-medium text-ink/64 transition hover:text-ink"
-                    href={`#sample-section-${sectionId}`}
-                  >
-                    보기
-                  </a>
                 </div>
                 <SectionRenderer invitation={invitation} sectionId={sectionId} />
               </article>
@@ -341,7 +340,7 @@ function SectionRenderer({
     case "location":
       return (
         <SectionShell description={copy.locationDescription} title={copy.locationTitle}>
-          <div className="grid gap-4 rounded-md bg-[#faf6f1] p-5">
+          <div className="min-w-0 overflow-hidden rounded-md bg-[#faf6f1] p-4 sm:p-5">
             <div>
               <p className="text-base font-semibold text-ink">
                 {invitation.venueName || "예식 장소를 준비 중입니다."}
@@ -355,11 +354,11 @@ function SectionRenderer({
             </div>
 
             {invitation.config.visibility.venueGuide && renderVenueGuideRows(venueGuide).length ? (
-              <dl className="grid gap-3 rounded-md border border-white/70 bg-white p-4 text-sm">
+              <dl className="grid min-w-0 gap-3 rounded-md border border-white/70 bg-white p-4 text-sm">
                 {renderVenueGuideRows(venueGuide).map((item) => (
-                  <div className="grid grid-cols-[72px_1fr] gap-3" key={item.label}>
+                  <div className="grid gap-1 sm:grid-cols-[72px_1fr] sm:gap-3" key={item.label}>
                     <dt className="font-medium text-ink/50">{item.label}</dt>
-                    <dd className="text-ink/75">{item.value}</dd>
+                    <dd className="min-w-0 break-words text-ink/75">{item.value}</dd>
                   </div>
                 ))}
               </dl>
@@ -375,7 +374,7 @@ function SectionRenderer({
                 />
                 <div className="flex flex-wrap gap-2">
                   <a
-                    className="inline-flex rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-medium text-ink"
+                    className="inline-flex w-full justify-center rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-medium text-ink sm:w-auto"
                     href={
                       invitation.config.placeSearch.placeUrl ||
                       `https://map.kakao.com/link/map/${encodeURIComponent(
@@ -388,7 +387,7 @@ function SectionRenderer({
                     지도보기
                   </a>
                   <a
-                    className="inline-flex rounded-md bg-ink px-4 py-2 text-sm font-medium text-white"
+                    className="inline-flex w-full justify-center rounded-md bg-ink px-4 py-2 text-sm font-medium text-white sm:w-auto"
                     href={`https://map.kakao.com/link/to/${encodeURIComponent(
                       invitation.venueName || invitation.title
                     )},${invitation.mapLat},${invitation.mapLng}`}
@@ -401,7 +400,7 @@ function SectionRenderer({
               </div>
             ) : invitation.config.placeSearch.placeUrl ? (
               <a
-                className="inline-flex w-fit rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-medium text-ink"
+                className="inline-flex w-full justify-center rounded-md border border-ink/15 bg-white px-4 py-2 text-sm font-medium text-ink sm:w-fit"
                 href={invitation.config.placeSearch.placeUrl}
                 rel="noreferrer"
                 target="_blank"
@@ -524,7 +523,7 @@ function SectionShell({
   children: ReactNode;
 }) {
   return (
-    <section className="border-t border-[#f3ebe5] px-6 py-10">
+    <section className="min-w-0 border-t border-[#f3ebe5] px-4 py-9 sm:px-6 sm:py-10">
       <div className="mb-6 text-center">
         <h2 className="text-2xl font-semibold text-ink">{title}</h2>
         {description ? <p className="mt-3 text-sm leading-6 text-ink/58">{description}</p> : null}

@@ -1,6 +1,6 @@
 # Wedding Studio
 
-예비부부를 위한 웨딩 프로젝트 SaaS입니다. 하나의 프로젝트 안에서 식전영상과 모바일 청첩장을 함께 준비할 수 있도록 설계했습니다.
+예비부부를 위한 웨딩 제작 SaaS입니다. 하나의 작업 흐름 안에서 식전영상과 모바일 청첩장을 함께 준비할 수 있도록 설계했습니다.
 
 ## Stack
 
@@ -49,9 +49,9 @@ APP_PUBLIC_URL="https://www.mcpage.kro.kr"
 
 - `/`: 서비스 소개와 시작 화면
 - `/login`: 로그인 / 회원가입
-- `/dashboard`: 내 프로젝트 목록
-- `/dashboard/projects/new`: 새 프로젝트 생성
-- `/dashboard/projects/[projectId]`: 프로젝트 허브
+- `/dashboard`: 내 작업 목록
+- `/dashboard/projects/new`: 새 청첩장 만들기
+- `/dashboard/projects/[projectId]`: 작업 관리 허브
 - `/dashboard/projects/[projectId]/invitation`: 모바일 청첩장 편집
 - `/dashboard/projects/[projectId]/video`: 식전영상 편집
 - `/i/[slug]`: 공개 청첩장 페이지

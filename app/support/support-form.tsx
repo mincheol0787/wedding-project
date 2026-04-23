@@ -54,7 +54,7 @@ export function SupportForm({
         <textarea
           className="min-h-36 resize-y rounded-md border border-ink/12 bg-[#fbfcfb] px-4 py-3 text-sm leading-6 outline-none transition focus:border-sage/60 focus:bg-white"
           name="message"
-          placeholder="어떤 상황에서 문제가 생겼는지, 확인이 필요한 페이지나 프로젝트명을 함께 적어 주세요."
+          placeholder="어떤 상황에서 문제가 생겼는지, 확인이 필요한 페이지나 작업명을 함께 적어 주세요."
           required
         />
       </label>

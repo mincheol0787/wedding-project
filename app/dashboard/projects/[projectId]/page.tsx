@@ -36,7 +36,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
               대시보드로 돌아가기
             </Link>
             <p className="mt-6 text-xs font-semibold uppercase tracking-[0.18em] text-rose">
-              Wedding Project
+              Wedding Work
             </p>
             <h1 className="mt-2 text-4xl font-semibold text-ink">{project.title}</h1>
             <p className="mt-3 text-base text-ink/60">
@@ -78,9 +78,9 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
           <aside className="grid gap-6">
             <section className="rounded-md border border-ink/10 bg-white p-5 shadow-sm">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose">
-                Project Overview
+                Work Overview
               </p>
-              <h2 className="mt-2 text-2xl font-semibold text-ink">프로젝트 관리</h2>
+              <h2 className="mt-2 text-2xl font-semibold text-ink">작업 관리</h2>
               <dl className="mt-5 grid gap-4 text-sm">
                 <div>
                   <dt className="text-ink/45">상태</dt>

@@ -27,7 +27,7 @@ export default async function SupportPage() {
             <div className="mt-8 grid gap-3">
               {[
                 ["답변 기준", "운영 시간 기준 순차 답변"],
-                ["추천 정보", "프로젝트명, 공개 URL, 오류 화면"],
+                ["추천 정보", "작업명, 공개 URL, 오류 화면"],
                 ["긴급 문의", "공개 페이지 오류 또는 결제 문제"]
               ].map(([label, value]) => (
                 <div className="rounded-md bg-[#f8faf8] px-4 py-3" key={label}>

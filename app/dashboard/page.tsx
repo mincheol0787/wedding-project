@@ -21,7 +21,7 @@ export default async function DashboardPage() {
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-rose">
               Wedding Dashboard
             </p>
-            <h1 className="mt-3 text-4xl font-semibold text-ink">우리의 웨딩 프로젝트</h1>
+            <h1 className="mt-3 text-4xl font-semibold text-ink">내 작업</h1>
             <p className="mt-4 max-w-2xl leading-7 text-ink/65">
               모바일 청첩장, RSVP, 방명록, 식전영상과 일정 관리를 한 흐름으로 이어서 준비할 수 있어요.
             </p>
@@ -31,7 +31,7 @@ export default async function DashboardPage() {
               href="/dashboard/projects/new"
               className="rounded-md bg-ink px-5 py-3 text-sm font-medium text-white"
             >
-              새 프로젝트 만들기
+              새 청첩장 만들기
             </FastLink>
           </div>
         </header>
@@ -62,9 +62,9 @@ export default async function DashboardPage() {
         ) : (
           <section className="mt-8 rounded-md border border-dashed border-ink/20 bg-white p-10 text-center">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">
-              First Project
+              First Work
             </p>
-            <h2 className="mt-3 text-2xl font-semibold text-ink">아직 만든 프로젝트가 없어요</h2>
+            <h2 className="mt-3 text-2xl font-semibold text-ink">아직 만든 작업이 없어요</h2>
             <p className="mx-auto mt-3 max-w-xl leading-7 text-ink/60">
               커플 이름과 예식일만 입력하면 청첩장과 식전영상 작업 공간이 함께 생성됩니다.
             </p>
@@ -72,7 +72,7 @@ export default async function DashboardPage() {
               href="/dashboard/projects/new"
               className="mt-7 inline-flex rounded-md bg-ink px-5 py-3 text-sm font-medium text-white"
             >
-              첫 프로젝트 만들기
+              첫 청첩장 만들기
             </FastLink>
           </section>
         )}

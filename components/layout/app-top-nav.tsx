@@ -20,7 +20,7 @@ export function AppTopNav({ currentProjectId, isAdmin, userName }: AppTopNavProp
   const videoHref = projectId ? `/dashboard/projects/${projectId}/video` : "/dashboard";
 
   const links = [
-    { href: projectHref, label: "프로젝트" },
+    { href: projectHref, label: "내 작업" },
     { href: invitationHref, label: "모바일 청첩장" },
     { href: videoHref, label: "식전영상" },
     { href: "/i/sample", label: "샘플 보기" },
@@ -53,7 +53,7 @@ export function AppTopNav({ currentProjectId, isAdmin, userName }: AppTopNavProp
             className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-white transition hover:bg-ink/88"
             href="/dashboard"
           >
-            제작 내역
+            내 작업
           </Link>
           {userName ? (
             <div className="hidden sm:block">

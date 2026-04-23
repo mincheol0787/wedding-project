@@ -58,7 +58,7 @@ export async function requestRenderAction(
 
   if (!project?.videoProject) {
     return {
-      error: "식전영상 프로젝트를 찾을 수 없습니다."
+      error: "식전영상 작업을 찾을 수 없습니다."
     };
   }
 

@@ -22,9 +22,9 @@ export function FloatingLandingCta({ isAuthenticated }: FloatingLandingCtaProps)
   }, []);
 
   const primaryHref = isAuthenticated ? "/dashboard" : "/login";
-  const primaryLabel = isAuthenticated ? "내 프로젝트 보기" : "무료로 시작하기";
+  const primaryLabel = isAuthenticated ? "최근 작업 이어가기" : "무료로 시작하기";
   const secondaryHref = isAuthenticated ? "/dashboard/projects/new" : "/i/sample";
-  const secondaryLabel = isAuthenticated ? "새 프로젝트 만들기" : "샘플 보기";
+  const secondaryLabel = isAuthenticated ? "새 청첩장 만들기" : "샘플 보기";
 
   return (
     <div
@@ -37,8 +37,8 @@ export function FloatingLandingCta({ isAuthenticated }: FloatingLandingCtaProps)
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose">Start</p>
           <p className="mt-1 text-sm font-medium text-ink">
             {isAuthenticated
-              ? "로그인 상태가 유지되고 있어요. 이어서 제작해보세요."
-              : "청첩장과 식전영상을 한 프로젝트에서 시작해보세요."}
+              ? "진행 중인 작업이 있습니다. 이어서 편집해보세요."
+              : "청첩장과 식전영상을 한 번에 준비해보세요."}
           </p>
         </div>
         <Link

@@ -34,7 +34,7 @@ export default async function VideoEditorPage({ params }: VideoEditorPageProps) 
         <header className="mb-8 flex flex-col gap-5 border-b border-ink/10 pb-8 md:flex-row md:items-end md:justify-between">
           <div>
             <Link className="text-sm font-medium text-ink/55" href={`/dashboard/projects/${project.id}`}>
-              프로젝트 개요로 돌아가기
+              작업 관리로 돌아가기
             </Link>
             <p className="mt-8 text-sm font-semibold uppercase tracking-[0.2em] text-rose">
               Wedding Video

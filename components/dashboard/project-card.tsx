@@ -94,7 +94,7 @@ export function ProjectCard({
 
       <div className="mt-5 flex flex-wrap gap-2">
         <FastLink className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-white" href={`/dashboard/projects/${id}`}>
-          프로젝트 열기
+          이어서 편집
         </FastLink>
         <FastLink
           className="rounded-md border border-ink/15 px-4 py-2 text-sm font-medium text-ink"

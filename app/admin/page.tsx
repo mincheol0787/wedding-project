@@ -21,7 +21,7 @@ export default async function AdminPage() {
             </p>
             <h1 className="mt-3 text-4xl font-semibold text-ink">관리자 페이지</h1>
             <p className="mt-4 max-w-2xl leading-7 text-ink/65">
-              사용자, 프로젝트, 렌더링 작업, 템플릿과 기본 통계를 확인합니다.
+              사용자, 제작 작업, 렌더링 작업, 템플릿과 기본 통계를 확인합니다.
             </p>
           </div>
           <div className="rounded-md border border-ink/10 bg-white px-5 py-4 text-sm text-ink/65">
@@ -36,7 +36,7 @@ export default async function AdminPage() {
         <section className="mt-8 grid gap-4 md:grid-cols-5">
           <StatCard label="사용자" value={data.stats.userCount} sub={`${data.stats.adminCount} admin`} />
           <StatCard
-            label="프로젝트"
+            label="작업"
             value={data.stats.projectCount}
             sub={`${data.stats.publishedInvitationCount} published`}
           />
@@ -108,7 +108,7 @@ export default async function AdminPage() {
                   <th className="py-3 pr-4 font-medium">이메일</th>
                   <th className="py-3 pr-4 font-medium">이름</th>
                   <th className="py-3 pr-4 font-medium">권한</th>
-                  <th className="py-3 pr-4 font-medium">프로젝트</th>
+                  <th className="py-3 pr-4 font-medium">작업</th>
                   <th className="py-3 pr-4 font-medium">렌더링</th>
                   <th className="py-3 pr-4 font-medium">가입일</th>
                 </tr>
@@ -131,7 +131,7 @@ export default async function AdminPage() {
           </div>
         </AdminSection>
 
-        <AdminSection title="프로젝트 목록">
+        <AdminSection title="작업 목록">
           <div className="grid gap-3">
             {data.projects.map((project) => (
               <article className="rounded-md border border-ink/10 bg-porcelain/60 p-4" key={project.id}>
@@ -162,7 +162,7 @@ export default async function AdminPage() {
                 </div>
               </article>
             ))}
-            {data.projects.length === 0 ? <EmptyText text="프로젝트가 없습니다." /> : null}
+            {data.projects.length === 0 ? <EmptyText text="작업이 없습니다." /> : null}
           </div>
         </AdminSection>
 

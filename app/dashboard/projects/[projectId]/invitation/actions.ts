@@ -99,7 +99,7 @@ export async function saveInvitationAction(
 
   if (!project?.invitationProject) {
     return {
-      error: "모바일 청첩장 프로젝트를 찾을 수 없습니다."
+      error: "모바일 청첩장 작업을 찾을 수 없습니다."
     };
   }
 

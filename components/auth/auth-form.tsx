@@ -59,7 +59,7 @@ export function AuthForm() {
         <p className="text-sm font-medium text-rose">Login</p>
         <h2 className="mt-2 text-2xl font-semibold text-ink">다시 돌아오신 것을 환영해요</h2>
         <p className="mt-2 text-sm leading-6 text-ink/60">
-          저장된 프로젝트를 이어서 편집하고 청첩장과 영상을 계속 준비해 보세요.
+          저장된 작업을 이어서 편집하고 청첩장과 영상을 계속 준비해 보세요.
         </p>
         <div className="mt-6 grid gap-4">
           <label className="grid gap-2 text-sm font-medium text-ink">
@@ -100,7 +100,7 @@ export function AuthForm() {
         <p className="text-sm font-medium text-sage">Join</p>
         <h2 className="mt-2 text-2xl font-semibold text-ink">처음 시작하기</h2>
         <p className="mt-2 text-sm leading-6 text-ink/60">
-          계정을 만들고 우리만의 웨딩 프로젝트를 차분하게 준비해 보세요.
+          계정을 만들고 우리만의 청첩장과 영상을 차분하게 준비해 보세요.
         </p>
         <div className="mt-6 grid gap-4">
           <label className="grid gap-2 text-sm font-medium text-ink">

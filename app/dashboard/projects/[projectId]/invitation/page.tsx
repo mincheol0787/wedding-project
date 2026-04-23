@@ -35,7 +35,7 @@ export default async function InvitationEditorPage({ params }: InvitationEditorP
         <header className="mb-8 grid gap-6 rounded-md border border-ink/10 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] md:grid-cols-[1fr_auto] md:items-end lg:px-7 lg:py-6">
           <div>
             <Link className="text-sm font-medium text-ink/55 transition hover:text-rose" href={`/dashboard/projects/${project.id}`}>
-              프로젝트 개요로 돌아가기
+              작업 관리로 돌아가기
             </Link>
             <p className="mt-6 text-xs font-semibold uppercase tracking-[0.2em] text-sage">
               Mobile Invitation
@@ -48,7 +48,7 @@ export default async function InvitationEditorPage({ params }: InvitationEditorP
             </p>
           </div>
           <div className="rounded-md border border-ink/10 bg-[#f8faf8] px-5 py-4 text-sm text-ink/65">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose">Project</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose">Work</p>
             <p className="mt-2 font-medium text-ink">{project.title}</p>
             <p className="mt-1">청첩장 상태: {invitation.status}</p>
           </div>
