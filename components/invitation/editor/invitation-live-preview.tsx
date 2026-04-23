@@ -39,7 +39,7 @@ export function InvitationLivePreview({
   const template =
     invitationTemplates.find((item) => item.id === config.templateId) ?? invitationTemplates[0];
   const previewGallery = gallery.slice(0, 3);
-  const coverImage = gallery[0];
+  const coverImage = gallery.find((item) => item.id === config.galleryOptions.mainImageId) ?? gallery[0];
   const [draggingSectionId, setDraggingSectionId] = useState<InvitationSectionId | null>(null);
 
   function wrapPreviewSection(sectionId: InvitationSectionId, children: ReactNode) {
@@ -163,9 +163,18 @@ export function InvitationLivePreview({
                 <h4 className="text-center text-lg font-semibold text-ink">
                   {config.copy.galleryTitle}
                 </h4>
-                <div className="mt-4 grid grid-cols-3 gap-2">
-                  {previewGallery.map((item) => (
-                    <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-[#eef1ed]" key={item.id}>
+                <p className="mt-2 text-center text-xs text-ink/45">
+                  {getGalleryModeLabel(config.galleryOptions.displayMode)}
+                </p>
+                <div className={getPreviewGalleryClass(config.galleryOptions.displayMode)}>
+                  {previewGallery.map((item, index) => (
+                    <div
+                      className={`relative overflow-hidden rounded-md bg-[#eef1ed] ${getPreviewGalleryItemClass(
+                        config.galleryOptions.displayMode,
+                        index
+                      )}`}
+                      key={item.id}
+                    >
                       <Image
                         alt={item.alt ?? item.fileName}
                         className="object-cover"
@@ -313,5 +322,42 @@ function getFontClass(fontPreset: InvitationConfig["design"]["fontPreset"]) {
       return "font-serif tracking-[0.02em]";
     default:
       return "font-serif";
+  }
+}
+
+function getPreviewGalleryClass(displayMode: InvitationConfig["galleryOptions"]["displayMode"]) {
+  switch (displayMode) {
+    case "full":
+      return "mt-4 grid grid-cols-3 gap-2";
+    case "animated":
+      return "mt-4 grid grid-cols-2 gap-2";
+    default:
+      return "mt-4 grid grid-cols-3 gap-2";
+  }
+}
+
+function getPreviewGalleryItemClass(
+  displayMode: InvitationConfig["galleryOptions"]["displayMode"],
+  index: number
+) {
+  if (displayMode === "animated") {
+    return `${index % 2 === 1 ? "translate-y-3" : ""} aspect-[4/5]`;
+  }
+
+  if (displayMode === "slide") {
+    return index === 0 ? "col-span-2 row-span-2 aspect-square" : "aspect-square";
+  }
+
+  return "aspect-square";
+}
+
+function getGalleryModeLabel(displayMode: InvitationConfig["galleryOptions"]["displayMode"]) {
+  switch (displayMode) {
+    case "animated":
+      return "애니메이션형 갤러리";
+    case "full":
+      return "전체보기형 갤러리";
+    default:
+      return "슬라이드형 갤러리";
   }
 }

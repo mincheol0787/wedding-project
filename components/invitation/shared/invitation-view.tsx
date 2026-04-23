@@ -59,7 +59,7 @@ export function InvitationView({ invitation }: InvitationViewProps) {
   const sections = invitation.config.sectionOrder.filter((sectionId) =>
     shouldRenderSection(sectionId, invitation)
   );
-  const coverImage = invitation.gallery[0];
+  const coverImage = getMainGalleryImage(invitation.gallery, invitation.config.galleryOptions.mainImageId);
 
   if (invitation.mode === "sample") {
     return (
@@ -615,4 +615,8 @@ function getFontClass(fontPreset: InvitationConfig["design"]["fontPreset"]) {
     default:
       return "font-serif";
   }
+}
+
+function getMainGalleryImage(gallery: InvitationGalleryItem[], mainImageId?: string) {
+  return gallery.find((item) => item.id === mainImageId) ?? gallery[0];
 }

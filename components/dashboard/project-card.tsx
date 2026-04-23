@@ -117,6 +117,7 @@ export function ProjectCard({
               ? `/i/${invitation.publicSlug}`
               : `/dashboard/projects/${id}/invitation/preview`
           }
+          showLoading={false}
           target={invitation?.status === "PUBLISHED" ? "_blank" : undefined}
         >
           {invitation?.status === "PUBLISHED" ? "공개 페이지" : "청첩장 미리보기"}

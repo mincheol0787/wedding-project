@@ -30,7 +30,7 @@ export default async function InvitationEditorPage({ params }: InvitationEditorP
   const previewUrl = `/dashboard/projects/${project.id}/invitation/preview`;
 
   return (
-    <main className="min-h-screen bg-[#f5f7f4] px-4 py-8 sm:px-6 lg:py-10">
+    <main className="min-h-screen bg-[#f5f7f4] px-4 pb-28 pt-8 sm:px-6 lg:pb-36 lg:pt-10">
       <section className="mx-auto max-w-[1540px]">
         <header className="mb-8 grid gap-6 rounded-md border border-ink/10 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] md:grid-cols-[1fr_auto] md:items-end lg:px-7 lg:py-6">
           <div>

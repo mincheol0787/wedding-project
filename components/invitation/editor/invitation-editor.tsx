@@ -227,6 +227,10 @@ export function InvitationEditor({
     );
 
     setGallery((current) => [...current, ...uploaded]);
+
+    if (uploaded[0] && !config.galleryOptions.mainImageId && gallery.length === 0) {
+      updateGalleryOption("mainImageId", uploaded[0].id);
+    }
   }
 
   async function handlePlaceSearch() {
@@ -365,6 +369,23 @@ export function InvitationEditor({
       galleryOptions: {
         ...current.galleryOptions,
         [key]: value
+      }
+    }));
+  }
+
+  function setMainGalleryImage(imageId: string) {
+    updateGalleryOption("mainImageId", imageId);
+    scrollPreviewToSection("cover");
+  }
+
+  function removeGalleryImage(imageId: string) {
+    setGallery((current) => current.filter((galleryItem) => galleryItem.id !== imageId));
+    setConfig((current) => ({
+      ...current,
+      galleryOptions: {
+        ...current.galleryOptions,
+        mainImageId:
+          current.galleryOptions.mainImageId === imageId ? "" : current.galleryOptions.mainImageId
       }
     }));
   }
@@ -511,7 +532,7 @@ export function InvitationEditor({
   return (
     <form
       action={formAction}
-      className="grid gap-6 lg:grid-cols-[minmax(340px,4fr)_minmax(0,6fr)] lg:items-start xl:gap-8"
+      className="grid gap-6 pb-40 lg:grid-cols-[minmax(340px,4fr)_minmax(0,6fr)] lg:items-start lg:pb-48 xl:gap-8"
     >
       <input name="galleryJson" type="hidden" value={galleryJson} />
       <input name="configJson" type="hidden" value={configJson} />
@@ -533,10 +554,10 @@ export function InvitationEditor({
       <input name="mapLat" type="hidden" value={form.mapLat} />
       <input name="mapLng" type="hidden" value={form.mapLng} />
 
-      <aside className="min-w-0 lg:sticky lg:top-20">
+      <aside className="min-w-0 lg:self-start">
         <div className="rounded-md border border-ink/10 bg-[#f7f2ed]/95 p-3 shadow-[0_18px_60px_rgba(36,36,36,0.06)]">
           <div
-            className="max-h-[72vh] overflow-y-auto pr-1 [scrollbar-width:none] lg:max-h-[calc(100vh-7rem)] [&::-webkit-scrollbar]:hidden"
+            className="overflow-visible pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             ref={previewScrollRef}
           >
             <InvitationLivePreview
@@ -556,7 +577,7 @@ export function InvitationEditor({
         </div>
       </aside>
 
-      <div className="min-w-0 grid gap-5 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="min-w-0 grid gap-5 lg:pr-1">
         <div
           className="rounded-md border border-ink/10 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(36,36,36,0.05)]"
           onClick={() => scrollPreviewToSection("cover")}
@@ -985,18 +1006,33 @@ export function InvitationEditor({
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Gallery</p>
             <h2 className="mt-2 text-2xl font-semibold text-ink">사진 표현 방식</h2>
+            <p className="mt-2 text-sm leading-6 text-ink/55">
+              선택하면 왼쪽 미리보기와 공개 페이지에 바로 반영됩니다.
+            </p>
           </div>
           <div className="grid gap-3 md:grid-cols-3">
             {[
-              { id: "animated", label: "애니메이션형" },
-              { id: "slide", label: "슬라이드형" },
-              { id: "full", label: "전체보기형" }
+              {
+                id: "slide",
+                label: "슬라이드",
+                description: "대표 사진을 크게 보여주고 나머지는 넘겨보는 방식"
+              },
+              {
+                id: "full",
+                label: "전체보기",
+                description: "여러 장을 한눈에 볼 수 있는 정돈된 그리드"
+              },
+              {
+                id: "animated",
+                label: "애니메이션",
+                description: "사진마다 살짝 다른 위치감을 주는 감성형 배치"
+              }
             ].map((item) => (
               <button
                 className={`rounded-md border p-4 text-left transition ${
                   config.galleryOptions.displayMode === item.id
-                    ? "border-sage bg-sage/10"
-                    : "border-ink/10 bg-[#fbfcfb] hover:border-sage/35"
+                    ? "border-sage bg-sage/10 shadow-[0_14px_36px_rgba(102,125,104,0.12)]"
+                    : "border-ink/10 bg-[#fbfcfb] hover:border-sage/35 hover:bg-white"
                 }`}
                 key={item.id}
                 onClick={() =>
@@ -1007,7 +1043,17 @@ export function InvitationEditor({
                 }
                 type="button"
               >
+                <span
+                  className={`mb-3 inline-flex rounded-md px-2 py-1 text-[11px] font-semibold ${
+                    config.galleryOptions.displayMode === item.id
+                      ? "bg-white text-sage"
+                      : "bg-[#f4f0eb] text-ink/48"
+                  }`}
+                >
+                  {config.galleryOptions.displayMode === item.id ? "선택됨" : "옵션"}
+                </span>
                 <p className="font-medium text-ink">{item.label}</p>
+                <p className="mt-2 text-xs leading-5 text-ink/50">{item.description}</p>
               </button>
             ))}
           </div>
@@ -1039,21 +1085,50 @@ export function InvitationEditor({
               />
             </label>
           </div>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-medium text-ink">등록된 사진 {gallery.length}장</p>
+            <p className="text-xs text-ink/45">대표 이미지는 첫 화면과 미리보기에 사용됩니다.</p>
+          </div>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            {gallery.map((item) => (
-              <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-[#eef1ed]" key={item.id}>
+            {gallery.map((item, index) => {
+              const isMainImage = config.galleryOptions.mainImageId
+                ? config.galleryOptions.mainImageId === item.id
+                : index === 0;
+
+              return (
+              <div
+                className={`group relative aspect-[3/4] overflow-hidden rounded-md border bg-[#eef1ed] transition ${
+                  isMainImage
+                    ? "border-sage shadow-[0_18px_42px_rgba(102,125,104,0.18)] ring-2 ring-sage/15"
+                    : "border-white/80 hover:border-sage/35"
+                }`}
+                key={item.id}
+              >
                 <Image alt={item.alt ?? item.fileName} className="object-cover" fill src={item.src} unoptimized />
-                <button
-                  className="absolute right-2 top-2 rounded-md bg-white/90 px-2 py-1 text-xs font-medium text-rose"
-                  onClick={() =>
-                    setGallery((current) => current.filter((galleryItem) => galleryItem.id !== item.id))
-                  }
-                  type="button"
-                >
-                  삭제
-                </button>
+                {isMainImage ? (
+                  <span className="absolute left-2 top-2 rounded-md bg-white/92 px-2 py-1 text-[11px] font-semibold text-sage shadow-sm">
+                    대표
+                  </span>
+                ) : null}
+                <div className="absolute inset-x-2 bottom-2 grid gap-1 opacity-0 transition group-hover:opacity-100">
+                  <button
+                    className="rounded-md bg-white/92 px-2 py-1.5 text-xs font-medium text-ink shadow-sm transition hover:bg-white"
+                    onClick={() => setMainGalleryImage(item.id)}
+                    type="button"
+                  >
+                    대표 이미지로 설정
+                  </button>
+                  <button
+                    className="rounded-md bg-white/92 px-2 py-1.5 text-xs font-medium text-rose shadow-sm transition hover:bg-white"
+                    onClick={() => removeGalleryImage(item.id)}
+                    type="button"
+                  >
+                    삭제
+                  </button>
+                </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 

@@ -7,9 +7,19 @@ import { useState, type AnchorHTMLAttributes, type ReactNode } from "react";
 type FastLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & {
   href: string;
   children: ReactNode;
+  showLoading?: boolean;
 };
 
-export function FastLink({ children, className, href, onClick, onFocus, onPointerEnter, ...props }: FastLinkProps) {
+export function FastLink({
+  children,
+  className,
+  href,
+  onClick,
+  onFocus,
+  onPointerEnter,
+  showLoading = true,
+  ...props
+}: FastLinkProps) {
   const router = useRouter();
   const [isNavigating, setIsNavigating] = useState(false);
 
@@ -24,7 +34,9 @@ export function FastLink({ children, className, href, onClick, onFocus, onPointe
       className={`${className ?? ""} relative overflow-hidden`}
       href={href}
       onClick={(event) => {
-        setIsNavigating(true);
+        if (showLoading && props.target !== "_blank") {
+          setIsNavigating(true);
+        }
         onClick?.(event);
       }}
       onFocus={(event) => {

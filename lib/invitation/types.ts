@@ -93,7 +93,8 @@ export const invitationVenueGuideSchema = z.object({
 export const invitationGalleryOptionsSchema = z.object({
   displayMode: z.enum(invitationGalleryDisplayModes).default("slide"),
   enableZoom: z.boolean().default(true),
-  showSaveButton: z.boolean().default(false)
+  showSaveButton: z.boolean().default(false),
+  mainImageId: z.string().optional().default("")
 });
 
 export const invitationDesignSchema = z.object({
