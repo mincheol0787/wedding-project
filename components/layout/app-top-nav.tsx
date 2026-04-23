@@ -10,21 +10,27 @@ type AppTopNavProps = {
   userName?: string | null;
 };
 
+type NavItem = {
+  href: string;
+  isNew?: boolean;
+  label: string;
+};
+
 export function AppTopNav({ currentProjectId, isAdmin, userName }: AppTopNavProps) {
   const pathname = usePathname();
   const projectId = currentProjectId ?? getProjectIdFromPath(pathname);
   const isLoginPage = pathname === "/login";
 
-  const projectHref = projectId ? `/dashboard/projects/${projectId}` : "/dashboard";
-  const invitationHref = projectId ? `/dashboard/projects/${projectId}/invitation` : "/dashboard";
-  const videoHref = projectId ? `/dashboard/projects/${projectId}/video` : "/dashboard";
+  const invitationHref = projectId
+    ? `/dashboard/projects/${projectId}/invitation`
+    : "/dashboard/projects/new";
+  const videoHref = projectId ? `/dashboard/projects/${projectId}/video` : "/dashboard/projects/new";
 
-  const links = [
-    { href: projectHref, label: "내 작업" },
-    { href: invitationHref, label: "모바일 청첩장" },
-    { href: videoHref, label: "식전영상" },
-    { href: "/i/sample", label: "샘플 보기" },
-    { href: "/support", label: "고객센터" },
+  const links: NavItem[] = [
+    { href: "/", label: "홈" },
+    { href: "/dashboard", label: "내 작업" },
+    { href: invitationHref, label: "청첩장 만들기" },
+    { href: videoHref, label: "영상 만들기", isNew: true },
     ...(isAdmin ? [{ href: "/admin", label: "관리자" }] : [])
   ];
 
@@ -37,7 +43,7 @@ export function AppTopNav({ currentProjectId, isAdmin, userName }: AppTopNavProp
 
         <nav aria-label="주요 메뉴" className="hidden items-center gap-1 text-sm text-ink/62 lg:flex">
           {links.map((item) => (
-            <TopNavLink href={item.href} key={`${item.label}-${item.href}`}>
+            <TopNavLink href={item.href} isNew={item.isNew} key={`${item.label}-${item.href}`}>
               {item.label}
             </TopNavLink>
           ))}
@@ -49,22 +55,17 @@ export function AppTopNav({ currentProjectId, isAdmin, userName }: AppTopNavProp
               {userName}
             </span>
           ) : null}
-          <Link
-            className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-white transition hover:bg-ink/88"
-            href="/dashboard"
-          >
-            내 작업
-          </Link>
           {userName ? (
             <div className="hidden sm:block">
               <SignOutButton compact />
             </div>
           ) : !isLoginPage ? (
             <Link
-              className="hidden rounded-md border border-ink/15 px-3 py-2 text-sm font-medium text-ink transition hover:bg-white sm:inline-flex"
+              className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-white transition hover:bg-ink/88"
               href="/login"
+              prefetch
             >
-              로그인
+              시작하기
             </Link>
           ) : null}
         </div>
@@ -76,11 +77,13 @@ export function AppTopNav({ currentProjectId, isAdmin, userName }: AppTopNavProp
       >
         {links.map((item) => (
           <Link
-            className="shrink-0 rounded-md border border-ink/10 bg-white/70 px-3 py-2 transition hover:bg-white hover:text-ink"
+            className="inline-flex shrink-0 items-center gap-1 rounded-md border border-ink/10 bg-white/70 px-3 py-2 transition hover:bg-white hover:text-ink"
             href={item.href}
             key={`mobile-${item.label}-${item.href}`}
+            prefetch
           >
             {item.label}
+            {item.isNew ? <NewBadge /> : null}
           </Link>
         ))}
       </nav>
@@ -88,11 +91,32 @@ export function AppTopNav({ currentProjectId, isAdmin, userName }: AppTopNavProp
   );
 }
 
-function TopNavLink({ href, children }: { href: string; children: React.ReactNode }) {
+function TopNavLink({
+  children,
+  href,
+  isNew
+}: {
+  children: React.ReactNode;
+  href: string;
+  isNew?: boolean;
+}) {
   return (
-    <Link className="rounded-md px-3 py-2 transition hover:bg-white hover:text-ink" href={href}>
+    <Link
+      className="inline-flex items-center gap-1 rounded-md px-3 py-2 transition hover:bg-white hover:text-ink"
+      href={href}
+      prefetch
+    >
       {children}
+      {isNew ? <NewBadge /> : null}
     </Link>
+  );
+}
+
+function NewBadge() {
+  return (
+    <span className="rounded-md bg-rose/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-rose">
+      NEW
+    </span>
   );
 }
 

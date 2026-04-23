@@ -31,20 +31,20 @@ export default async function InvitationEditorPage({ params }: InvitationEditorP
 
   return (
     <main className="min-h-screen bg-[#f5f7f4] px-4 py-8 sm:px-6 lg:py-10">
-      <section className="mx-auto max-w-7xl">
+      <section className="mx-auto max-w-[1540px]">
         <header className="mb-8 grid gap-6 rounded-md border border-ink/10 bg-white px-5 py-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] md:grid-cols-[1fr_auto] md:items-end lg:px-7 lg:py-6">
           <div>
             <Link className="text-sm font-medium text-ink/55 transition hover:text-rose" href={`/dashboard/projects/${project.id}`}>
-              작업 관리로 돌아가기
+              내 작업으로 돌아가기
             </Link>
             <p className="mt-6 text-xs font-semibold uppercase tracking-[0.2em] text-sage">
               Mobile Invitation
             </p>
             <h1 className="mt-3 text-3xl font-semibold leading-tight text-ink md:text-5xl">
-              초대의 결을 다듬는 편집실
+              청첩장 내용을 다듬는 곳
             </h1>
             <p className="mt-4 max-w-3xl text-base leading-7 text-ink/62">
-              템플릿, 문구, 사진, 장소, 섹션 순서를 한 흐름에서 정리하고 오른쪽에서 바로 확인합니다.
+              왼쪽에서는 실제 화면을 확인하고, 오른쪽에서는 문구와 사진, 장소, 화면 순서를 수정합니다.
             </p>
           </div>
           <div className="rounded-md border border-ink/10 bg-[#f8faf8] px-5 py-4 text-sm text-ink/65">

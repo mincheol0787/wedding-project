@@ -74,6 +74,7 @@ type InvitationEditorSnapshot = {
 
 const initialState: InvitationSaveState = {};
 const maxHistoryItems = 24;
+type PreviewTargetId = InvitationSectionId | "cover";
 
 export function InvitationEditor({
   projectId,
@@ -115,12 +116,12 @@ export function InvitationEditor({
   const [placeResults, setPlaceResults] = useState<PlaceSearchResult[]>([]);
   const [placeSearchError, setPlaceSearchError] = useState<string>();
   const [isSearchingPlaces, setIsSearchingPlaces] = useState(false);
-  const [isMobilePreviewOpen, setIsMobilePreviewOpen] = useState(false);
   const [submitIntent, setSubmitIntent] = useState<"draft" | "publish">("draft");
   const [draggingSectionId, setDraggingSectionId] = useState<InvitationSectionId | null>(null);
   const [history, setHistory] = useState<InvitationEditorSnapshot[]>([]);
   const [future, setFuture] = useState<InvitationEditorSnapshot[]>([]);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const previewScrollRef = useRef<HTMLDivElement | null>(null);
   const lastSnapshotRef = useRef<string | null>(null);
   const isRestoringSnapshotRef = useRef(false);
 
@@ -296,6 +297,16 @@ export function InvitationEditor({
       setHistory((historyItems) => [...historyItems.slice(-(maxHistoryItems - 1)), currentSnapshot]);
       restoreSnapshot(next);
       return current.slice(1);
+    });
+  }
+
+  function scrollPreviewToSection(sectionId: PreviewTargetId) {
+    const previewPanel = previewScrollRef.current;
+    const target = previewPanel?.querySelector<HTMLElement>(`[data-preview-section="${sectionId}"]`);
+
+    target?.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
     });
   }
 
@@ -500,7 +511,7 @@ export function InvitationEditor({
   return (
     <form
       action={formAction}
-      className="grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)_minmax(320px,380px)] 2xl:grid-cols-[260px_minmax(0,1fr)_minmax(380px,430px)] xl:items-start"
+      className="grid gap-6 lg:grid-cols-[minmax(340px,4fr)_minmax(0,6fr)] lg:items-start xl:gap-8"
     >
       <input name="galleryJson" type="hidden" value={galleryJson} />
       <input name="configJson" type="hidden" value={configJson} />
@@ -522,42 +533,58 @@ export function InvitationEditor({
       <input name="mapLat" type="hidden" value={form.mapLat} />
       <input name="mapLng" type="hidden" value={form.mapLng} />
 
-      <aside className="min-w-0 xl:sticky xl:top-20 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <EditorControlRail
-          canRedo={future.length > 0}
-          canUndo={history.length > 0}
-          lastSavedAt={lastSavedAt}
-          onCopyPublicUrl={copyPublicUrl}
-          onRedo={redoEdit}
-          onUndo={undoEdit}
-          preflightItems={preflightItems}
-          publicUrl={publicUrl}
-          requiredPreflightReady={requiredPreflightReady}
-          visibleSectionCount={visibleSectionCount}
-        />
+      <aside className="min-w-0 lg:sticky lg:top-20">
+        <div className="rounded-md border border-ink/10 bg-[#f7f2ed]/95 p-3 shadow-[0_18px_60px_rgba(36,36,36,0.06)]">
+          <div
+            className="max-h-[72vh] overflow-y-auto pr-1 [scrollbar-width:none] lg:max-h-[calc(100vh-7rem)] [&::-webkit-scrollbar]:hidden"
+            ref={previewScrollRef}
+          >
+            <InvitationLivePreview
+              brideName={form.brideName}
+              contactPhoneBride={form.contactPhoneBride}
+              contactPhoneGroom={form.contactPhoneGroom}
+              config={config}
+              eventDate={form.eventDate}
+              gallery={gallery}
+              greeting={form.greeting}
+              groomName={form.groomName}
+              onMoveSection={moveSection}
+              title={form.title}
+              venueName={form.venueName}
+            />
+          </div>
+        </div>
       </aside>
 
-      <div className="min-w-0 grid gap-5 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="rounded-md border border-ink/10 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(36,36,36,0.05)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sage">Editor</p>
+      <div className="min-w-0 grid gap-5 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div
+          className="rounded-md border border-ink/10 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(36,36,36,0.05)]"
+          onClick={() => scrollPreviewToSection("cover")}
+          onFocusCapture={() => scrollPreviewToSection("cover")}
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sage">Content Editor</p>
           <div className="mt-2 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
-              <h2 className="text-2xl font-semibold text-ink">청첩장 편집기</h2>
-              <p className="mt-1 text-sm text-ink/55">오른쪽에서 입력하고 왼쪽에서 바로 확인합니다.</p>
+              <h2 className="text-2xl font-semibold text-ink">청첩장 내용 수정</h2>
+              <p className="mt-1 text-sm text-ink/55">수정한 내용은 왼쪽 미리보기에 바로 반영됩니다.</p>
             </div>
             <span className="w-fit rounded-md bg-[#f4f7f2] px-3 py-2 text-xs font-medium text-ink/60">
-              {config.sectionOrder.length}개 섹션 구성 중
+              {config.sectionOrder.length}개 화면 구성 중
             </span>
           </div>
         </div>
 
-        <section className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6">
+        <section
+          className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6"
+          onClick={() => scrollPreviewToSection("cover")}
+          onFocusCapture={() => scrollPreviewToSection("cover")}
+        >
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Template</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Design</p>
               <h2 className="mt-2 text-2xl font-semibold text-ink">템플릿과 폰트</h2>
               <p className="mt-2 text-sm leading-6 text-ink/60">
-                템플릿을 누르는 즉시 오른쪽 미리보기에 반영됩니다. 폰트도 바로 바뀌어요.
+                템플릿을 누르는 즉시 왼쪽 미리보기에 반영됩니다. 폰트도 바로 바뀌어요.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -657,7 +684,11 @@ export function InvitationEditor({
           </div>
         </section>
 
-        <section className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6">
+        <section
+          className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6"
+          onClick={() => scrollPreviewToSection("cover")}
+          onFocusCapture={() => scrollPreviewToSection("cover")}
+        >
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Cover</p>
             <h2 className="mt-2 text-2xl font-semibold text-ink">커버 연출</h2>
@@ -738,7 +769,11 @@ export function InvitationEditor({
           </div>
         </section>
 
-        <section className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6">
+        <section
+          className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6"
+          onClick={() => scrollPreviewToSection("intro")}
+          onFocusCapture={() => scrollPreviewToSection("intro")}
+        >
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Visibility</p>
             <h2 className="mt-2 text-2xl font-semibold text-ink">표시 설정</h2>
@@ -757,7 +792,7 @@ export function InvitationEditor({
             />
             <VisibilityToggle
               checked={config.visibility.gallery}
-              label="사진 섹션"
+              label="사진 화면"
               onChange={(value) => updateVisibility("gallery", value)}
             />
             <VisibilityToggle
@@ -793,7 +828,11 @@ export function InvitationEditor({
           </div>
         </section>
 
-        <section className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6">
+        <section
+          className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6"
+          onClick={() => scrollPreviewToSection("cover")}
+          onFocusCapture={() => scrollPreviewToSection("cover")}
+        >
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Couple</p>
             <h2 className="mt-2 text-2xl font-semibold text-ink">기본 정보</h2>
@@ -834,7 +873,11 @@ export function InvitationEditor({
           </div>
         </section>
 
-        <section className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6">
+        <section
+          className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6"
+          onClick={() => scrollPreviewToSection("location")}
+          onFocusCapture={() => scrollPreviewToSection("location")}
+        >
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Venue</p>
             <h2 className="mt-2 text-2xl font-semibold text-ink">장소 검색과 예식 안내</h2>
@@ -934,7 +977,11 @@ export function InvitationEditor({
           <Textarea label="기타 안내" value={config.venueGuide.extra} onChange={(value) => updateVenueGuide("extra", value)} />
         </section>
 
-        <section className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6">
+        <section
+          className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6"
+          onClick={() => scrollPreviewToSection("gallery")}
+          onFocusCapture={() => scrollPreviewToSection("gallery")}
+        >
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Gallery</p>
             <h2 className="mt-2 text-2xl font-semibold text-ink">사진 표현 방식</h2>
@@ -1010,11 +1057,15 @@ export function InvitationEditor({
           </div>
         </section>
 
-        <section className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6">
+        <section
+          className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6"
+          onClick={() => scrollPreviewToSection("intro")}
+          onFocusCapture={() => scrollPreviewToSection("intro")}
+        >
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Copy</p>
-              <h2 className="mt-2 text-2xl font-semibold text-ink">문구와 섹션 순서</h2>
+              <h2 className="mt-2 text-2xl font-semibold text-ink">문구와 화면 순서 바꾸기</h2>
             </div>
             <div className="flex flex-wrap gap-2">
               <button
@@ -1027,7 +1078,7 @@ export function InvitationEditor({
                 }
                 type="button"
               >
-                템플릿 기본 순서
+                기본 화면 순서
               </button>
               <button
                 className="rounded-md border border-ink/15 px-4 py-2 text-sm"
@@ -1039,7 +1090,7 @@ export function InvitationEditor({
                 }
                 type="button"
               >
-                표준 순서
+                전체 화면 순서
               </button>
             </div>
           </div>
@@ -1079,15 +1130,19 @@ export function InvitationEditor({
               >
                 <div>
                   <p className="text-sm font-medium text-ink">{getSectionLabel(sectionId)}</p>
-                  <p className="text-xs text-ink/50">표시 순서 {index + 1}</p>
+                  <p className="text-xs text-ink/50">화면 순서 {index + 1}</p>
                 </div>
-                <div className="text-xs text-ink/40">드래그해서 이동</div>
+                <div className="text-xs text-ink/40">끌어서 순서 바꾸기</div>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6">
+        <section
+          className="grid gap-5 rounded-md border border-ink/10 bg-white/95 p-5 shadow-[0_18px_60px_rgba(36,36,36,0.05)] sm:p-6"
+          onClick={() => scrollPreviewToSection("gift")}
+          onFocusCapture={() => scrollPreviewToSection("gift")}
+        >
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Gift</p>
             <h2 className="mt-2 text-2xl font-semibold text-ink">계좌 정보</h2>
@@ -1143,6 +1198,19 @@ export function InvitationEditor({
           </button>
         </section>
 
+        <EditorUtilityPanel
+          canRedo={future.length > 0}
+          canUndo={history.length > 0}
+          lastSavedAt={lastSavedAt}
+          onCopyPublicUrl={copyPublicUrl}
+          onRedo={redoEdit}
+          onUndo={undoEdit}
+          preflightItems={preflightItems}
+          publicUrl={publicUrl}
+          requiredPreflightReady={requiredPreflightReady}
+          visibleSectionCount={visibleSectionCount}
+        />
+
         <section className="rounded-md border border-ink/10 bg-[#20221f] p-4 text-white shadow-[0_18px_60px_rgba(32,34,31,0.16)] sm:p-5">
           {state.error ? <p className="mb-3 text-sm text-[#f3b4ba]">{state.error}</p> : null}
           {state.message ? <p className="mb-3 text-sm text-[#bfd4c6]">{state.message}</p> : null}
@@ -1186,41 +1254,11 @@ export function InvitationEditor({
         </section>
       </div>
 
-      <aside className="min-w-0 xl:sticky xl:top-20">
-        <div className="rounded-md border border-ink/10 bg-[#f7f2ed]/95 p-3 shadow-[0_18px_60px_rgba(36,36,36,0.06)]">
-          <button
-            className="flex w-full items-center justify-between rounded-md border border-ink/10 bg-white px-4 py-3 text-left text-sm font-medium text-ink xl:hidden"
-            onClick={() => setIsMobilePreviewOpen((value) => !value)}
-            type="button"
-          >
-            모바일 미리보기
-            <span className="text-rose">{isMobilePreviewOpen ? "접기" : "열기"}</span>
-          </button>
-          <div
-            className={`${isMobilePreviewOpen ? "mt-3 block" : "hidden"} max-h-[calc(100vh-7rem)] overflow-y-auto pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden xl:mt-0 xl:block`}
-          >
-            <InvitationLivePreview
-              brideName={form.brideName}
-              contactPhoneBride={form.contactPhoneBride}
-              contactPhoneGroom={form.contactPhoneGroom}
-              config={config}
-              eventDate={form.eventDate}
-              gallery={gallery}
-              greeting={form.greeting}
-              groomName={form.groomName}
-              onMoveSection={moveSection}
-              title={form.title}
-              venueName={form.venueName}
-            />
-          </div>
-        </div>
-      </aside>
-
     </form>
   );
 }
 
-function EditorControlRail({
+function EditorUtilityPanel({
   canRedo,
   canUndo,
   lastSavedAt,
@@ -1248,9 +1286,9 @@ function EditorControlRail({
     : null;
 
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-4 lg:grid-cols-3">
       <section className="rounded-md border border-ink/10 bg-white/95 p-4 shadow-[0_18px_60px_rgba(36,36,36,0.06)]">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose">Status</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose">Save</p>
         <h3 className="mt-2 text-lg font-semibold text-ink">
           {requiredPreflightReady ? "공개 준비가 거의 끝났어요" : "공개 전 확인이 필요해요"}
         </h3>
@@ -1280,7 +1318,7 @@ function EditorControlRail({
       </section>
 
       <section className="rounded-md border border-ink/10 bg-white/95 p-4 shadow-[0_18px_60px_rgba(36,36,36,0.05)]">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose">Checklist</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose">공개 전 확인</p>
         <div className="mt-4 grid gap-2">
           {preflightItems.map((item) => (
             <div
@@ -1299,13 +1337,13 @@ function EditorControlRail({
           ))}
         </div>
         <p className="mt-3 text-xs leading-5 text-ink/45">
-          필수 정보는 숨길 수 없고, 선택 섹션은 미리보기와 공개 페이지에 같은 규칙으로 반영됩니다.
+          필수 정보는 숨길 수 없고, 선택 화면은 미리보기와 공개 페이지에 같은 규칙으로 반영됩니다.
         </p>
       </section>
 
       <section className="rounded-md border border-ink/10 bg-white/95 p-4 shadow-[0_18px_60px_rgba(36,36,36,0.05)]">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose">Share</p>
-        <p className="mt-2 text-sm text-ink/55">표시 중인 섹션 {visibleSectionCount}개</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose">공유</p>
+        <p className="mt-2 text-sm text-ink/55">표시 중인 화면 {visibleSectionCount}개</p>
         {publicUrl && qrCodeUrl ? (
           <div className="mt-4 grid gap-3">
             <div className="rounded-md border border-ink/8 bg-[#fbfcfb] p-3">
@@ -1423,6 +1461,8 @@ function getSectionLabel(sectionId: InvitationSectionId) {
       return "사진";
     case "location":
       return "오시는 길";
+    case "contacts":
+      return "연락처";
     case "gift":
       return "마음 전하실 곳";
     case "rsvp":

@@ -48,6 +48,7 @@ export function InvitationLivePreview({
         className={`transition ${
           draggingSectionId === sectionId ? "bg-sage/10 opacity-80" : ""
         }`}
+        data-preview-section={sectionId}
         draggable={Boolean(onMoveSection)}
         key={sectionId}
         onDragEnd={() => setDraggingSectionId(null)}
@@ -62,7 +63,7 @@ export function InvitationLivePreview({
             onMoveSection?.(draggingSectionId, sectionId);
           }
         }}
-        title={onMoveSection ? "드래그해서 섹션 순서를 변경할 수 있습니다." : undefined}
+        title={onMoveSection ? "드래그해서 화면 순서를 바꿀 수 있습니다." : undefined}
       >
         {children}
       </div>
@@ -74,9 +75,9 @@ export function InvitationLivePreview({
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-rose">
-            Live Preview
+            미리보기
           </p>
-          <p className="mt-1 text-sm text-ink/55">선택한 템플릿과 폰트가 바로 반영됩니다.</p>
+          <p className="mt-1 text-sm text-ink/55">수정한 내용이 바로 반영됩니다.</p>
         </div>
         <span className="rounded-md border border-ink/10 bg-white px-3 py-1 text-xs font-medium text-ink/65">
           {template.name}
@@ -88,7 +89,10 @@ export function InvitationLivePreview({
           config.design.fontPreset
         )}`}
       >
-        <div className={`relative min-h-[520px] overflow-hidden text-center ${coverImage ? "" : template.accentClass}`}>
+        <div
+          className={`relative min-h-[520px] overflow-hidden text-center ${coverImage ? "" : template.accentClass}`}
+          data-preview-section="cover"
+        >
           {coverImage ? (
             <Image
               alt={coverImage.alt ?? coverImage.fileName}
