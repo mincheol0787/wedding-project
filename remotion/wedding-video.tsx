@@ -7,7 +7,7 @@ import {
   useCurrentFrame,
   useVideoConfig
 } from "remotion";
-import type { VideoRenderInput } from "@/lib/video/render-input";
+import type { VideoRenderInput, VideoSubtitleStyleId } from "@/lib/video/render-input";
 import { defaultVideoRenderInput } from "@/lib/video/render-input";
 
 type WeddingVideoProps = {
@@ -41,15 +41,25 @@ export function WeddingVideo({ input = defaultVideoRenderInput }: WeddingVideoPr
         );
       })}
 
-      {input.lyricSegments.map((segment) => (
-        <Sequence
-          durationInFrames={msToFrames(segment.endMs - segment.startMs, fps)}
-          from={msToFrames(segment.startMs, fps)}
-          key={segment.id}
-        >
-          <LyricOverlay text={segment.text} templateId={input.templateId} />
-        </Sequence>
-      ))}
+      {input.lyricSegments.map((segment) => {
+        const durationInFrames = msToFrames(segment.endMs - segment.startMs, fps);
+
+        return (
+          <Sequence
+            durationInFrames={durationInFrames}
+            from={msToFrames(segment.startMs, fps)}
+            key={segment.id}
+          >
+            <LyricOverlay
+              durationInFrames={durationInFrames}
+              stylePreset={segment.style ?? input.musicPreset?.subtitleStyle}
+              templateId={input.templateId}
+              text={segment.text}
+              translation={segment.translation}
+            />
+          </Sequence>
+        );
+      })}
 
       <ProjectSignature input={input} />
     </AbsoluteFill>
@@ -125,19 +135,41 @@ function PhotoScene({
   );
 }
 
-function LyricOverlay({ text, templateId }: { text: string; templateId: VideoRenderInput["templateId"] }) {
+function LyricOverlay({
+  durationInFrames,
+  stylePreset,
+  templateId,
+  text,
+  translation
+}: {
+  durationInFrames: number;
+  stylePreset?: VideoSubtitleStyleId;
+  templateId: VideoRenderInput["templateId"];
+  text: string;
+  translation?: string;
+}) {
   const frame = useCurrentFrame();
-  const { durationInFrames } = useVideoConfig();
-  const opacity = interpolate(frame, [0, 18, durationInFrames - 18, durationInFrames], [0, 1, 1, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp"
-  });
-  const translateY = interpolate(frame, [0, 18], [18, 0], {
+  const fadeFrames = Math.min(18, Math.max(4, Math.floor(durationInFrames / 3)));
+  const opacity = interpolate(
+    frame,
+    [0, fadeFrames, durationInFrames - fadeFrames, durationInFrames],
+    [0, 1, 1, 0],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp"
+    }
+  );
+  const translateY = interpolate(frame, [0, fadeFrames], [18, 0], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp"
   });
 
   const isLetter = templateId === "film-letter";
+  const isPopClassic = stylePreset === "pop-classic";
+  const isDeepKpop = stylePreset === "kpop-deep";
+  const fontFamily = isPopClassic
+    ? "'Playfair Display', 'Noto Serif KR', Georgia, serif"
+    : "'Pretendard', 'Noto Sans KR', Arial, sans-serif";
 
   return (
     <AbsoluteFill
@@ -152,8 +184,9 @@ function LyricOverlay({ text, templateId }: { text: string; templateId: VideoRen
       <div
         style={{
           color: "#fff",
-          fontFamily: "Georgia, 'Times New Roman', serif",
-          fontSize: isLetter ? 62 : 70,
+          fontFamily,
+          fontSize: isPopClassic ? 58 : isLetter ? 62 : 70,
+          fontWeight: isPopClassic ? 500 : 600,
           letterSpacing: 0,
           lineHeight: 1.35,
           maxWidth: 1320,
@@ -163,7 +196,21 @@ function LyricOverlay({ text, templateId }: { text: string; templateId: VideoRen
           whiteSpace: "pre-wrap"
         }}
       >
-        {text}
+        <div>{text}</div>
+        {translation ? (
+          <div
+            style={{
+              color: isDeepKpop ? "rgba(255,244,235,0.82)" : "rgba(255,255,255,0.78)",
+              fontFamily: "'Noto Serif KR', 'Noto Sans KR', serif",
+              fontSize: isPopClassic ? 30 : 34,
+              fontWeight: 400,
+              lineHeight: 1.55,
+              marginTop: 22
+            }}
+          >
+            {translation}
+          </div>
+        ) : null}
       </div>
     </AbsoluteFill>
   );

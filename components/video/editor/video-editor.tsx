@@ -11,7 +11,12 @@ import {
   type EditorImageAsset,
   type VideoEditorState
 } from "@/lib/video/editor-state";
-import { videoTemplates, type VideoTemplateId } from "@/lib/video/render-input";
+import {
+  videoMusicPresets,
+  videoTemplates,
+  type VideoMusicPresetId,
+  type VideoTemplateId
+} from "@/lib/video/render-input";
 import { RenderRequestPanel } from "@/components/video/editor/render-request-panel";
 
 type VideoEditorProps = {
@@ -138,6 +143,48 @@ export function VideoEditor({ projectId, project }: VideoEditorProps) {
             >
               샘플 구성 채우기
             </button>
+          </div>
+        </div>
+        <div className="grid gap-3 rounded-md border border-ink/10 bg-[#fbfcfb] p-4">
+          <div>
+            <p className="text-sm font-semibold text-ink">샘플 음악 분위기와 자막</p>
+            <p className="mt-1 text-sm leading-6 text-ink/60">
+              실제 상용 음원과 가사는 포함하지 않습니다. 곡의 분위기만 참고한 데모 자막 구조로
+              렌더링 흐름을 먼저 확인할 수 있어요.
+            </p>
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            {videoMusicPresets.map((preset) => {
+              const isSelected = state.musicPreset?.id === preset.id;
+
+              return (
+                <button
+                  className={`rounded-md border p-4 text-left transition ${
+                    isSelected
+                      ? "border-rose bg-rose/5 shadow-[0_12px_34px_rgba(179,91,99,0.1)]"
+                      : "border-ink/10 bg-white hover:border-ink/30"
+                  }`}
+                  key={preset.id}
+                  onClick={() =>
+                    dispatch({
+                      type: "apply-music-preset",
+                      presetId: preset.id as VideoMusicPresetId
+                    })
+                  }
+                  type="button"
+                >
+                  <span className="text-xs font-semibold uppercase tracking-[0.16em] text-rose">
+                    {preset.category === "K_POP" ? "K-pop" : "Pop"}
+                  </span>
+                  <span className="mt-2 block text-base font-semibold text-ink">
+                    {preset.artist} - {preset.title}
+                  </span>
+                  <span className="mt-2 block text-sm leading-6 text-ink/60">
+                    {preset.mood}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -294,7 +341,7 @@ export function VideoEditor({ projectId, project }: VideoEditorProps) {
         <div className="grid gap-3">
           {state.lyricSegments.map((segment, index) => (
             <article
-              className="grid gap-3 rounded-md border border-ink/10 bg-porcelain/70 p-3 md:grid-cols-[1fr_140px_140px_80px] md:items-end"
+              className="grid gap-3 rounded-md border border-ink/10 bg-porcelain/70 p-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_120px_120px_72px] md:items-end"
               key={segment.id}
             >
               <label className="grid gap-2 text-sm font-medium text-ink">
@@ -312,6 +359,23 @@ export function VideoEditor({ projectId, project }: VideoEditorProps) {
                   }
                   placeholder="우리의 시작을 함께 축복해 주세요"
                   value={segment.text}
+                />
+              </label>
+              <label className="grid gap-2 text-sm font-medium text-ink">
+                번역 자막(선택)
+                <input
+                  className="rounded-md border border-ink/15 px-3 py-2"
+                  onChange={(event) =>
+                    dispatch({
+                      type: "update-lyric",
+                      lyricId: segment.id,
+                      patch: {
+                        translation: event.target.value
+                      }
+                    })
+                  }
+                  placeholder="영문 자막의 한국어 번역"
+                  value={segment.translation ?? ""}
                 />
               </label>
               <label className="grid gap-2 text-sm font-medium text-ink">
@@ -384,7 +448,8 @@ export function VideoEditor({ projectId, project }: VideoEditorProps) {
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Music</p>
             <h2 className="mt-2 text-2xl font-semibold text-ink">배경음악</h2>
             <p className="mt-2 text-sm leading-6 text-ink/60">
-              한 개의 오디오 파일을 배경음악으로 사용합니다. 나중에 S3 업로드 URL로 대체됩니다.
+              한 개의 오디오 파일을 배경음악으로 사용합니다. 샘플 음악 카드는 분위기와 자막만
+              제공하며, 실제 렌더링 음원은 사용자가 업로드한 파일을 연결합니다.
             </p>
           </div>
           <label className="inline-flex cursor-pointer rounded-md bg-sage px-5 py-3 text-sm font-medium text-white">
@@ -397,6 +462,16 @@ export function VideoEditor({ projectId, project }: VideoEditorProps) {
             />
           </label>
         </div>
+        {state.musicPreset ? (
+          <div className="rounded-md border border-sage/20 bg-sage/10 p-4 text-sm leading-6 text-ink/70">
+            <span className="font-semibold text-ink">
+              선택한 분위기: {state.musicPreset.artist} - {state.musicPreset.title}
+            </span>
+            <span className="block text-ink/55">
+              {state.musicPreset.mood} / 데모 자막만 제공되며 실제 음원은 포함되지 않습니다.
+            </span>
+          </div>
+        ) : null}
         {state.audio ? (
           <div className="rounded-md border border-ink/10 bg-porcelain/70 p-4">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

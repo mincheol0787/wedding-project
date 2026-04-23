@@ -26,9 +26,124 @@ export const videoTemplates: Array<{
   }
 ];
 
+export const videoMusicPresetIds = ["kpop-popcorn", "kpop-flower", "pop-close-to-you"] as const;
+export const videoMusicCategories = ["K_POP", "POP"] as const;
+export const videoSubtitleStyleIds = ["kpop-bright", "kpop-deep", "pop-classic"] as const;
+
+export type VideoMusicPresetId = (typeof videoMusicPresetIds)[number];
+export type VideoMusicCategory = (typeof videoMusicCategories)[number];
+export type VideoSubtitleStyleId = (typeof videoSubtitleStyleIds)[number];
+
+export type Subtitle = {
+  start: number;
+  end: number;
+  text: string;
+  translation?: string;
+};
+
+export const videoMusicPresets: Array<{
+  id: VideoMusicPresetId;
+  category: VideoMusicCategory;
+  title: string;
+  artist: string;
+  mood: string;
+  description: string;
+  subtitleStyle: VideoSubtitleStyleId;
+  demoOnly: true;
+  subtitles: Subtitle[];
+}> = [
+  {
+    id: "kpop-popcorn",
+    category: "K_POP",
+    title: "Popcorn",
+    artist: "도경수",
+    mood: "설렘 / 밝음 / 시작",
+    description: "상용 음원과 실제 가사 없이, 밝고 설레는 분위기만 참고한 샘플 구성입니다.",
+    subtitleStyle: "kpop-bright",
+    demoOnly: true,
+    subtitles: [
+      { start: 1.2, end: 5.8, text: "오늘의 설렘이 반짝이는 순간" },
+      { start: 8.5, end: 13.6, text: "작은 웃음이 우리의 하루를 채워요" },
+      { start: 16.4, end: 22.2, text: "처음처럼 가볍게, 오래도록 따뜻하게" },
+      { start: 27.5, end: 34.5, text: "두 손을 잡고 같은 계절을 걸어요" },
+      { start: 40.2, end: 50.5, text: "우리의 시작을 함께 축복해 주세요" }
+    ]
+  },
+  {
+    id: "kpop-flower",
+    category: "K_POP",
+    title: "Flower",
+    artist: "오반",
+    mood: "감성 / 깊은 사랑",
+    description: "상용 음원과 실제 가사 없이, 차분하고 깊은 사랑의 분위기만 참고한 샘플 구성입니다.",
+    subtitleStyle: "kpop-deep",
+    demoOnly: true,
+    subtitles: [
+      { start: 1.4, end: 6.4, text: "천천히 피어난 마음이" },
+      { start: 9.2, end: 15.8, text: "서로의 하루에 오래 머물렀습니다" },
+      { start: 19.5, end: 26.4, text: "말보다 깊은 약속을 안고" },
+      { start: 31.5, end: 40.2, text: "이제 같은 이름의 계절을 시작합니다" },
+      { start: 45.8, end: 56.4, text: "가장 고요한 사랑으로 함께하겠습니다" }
+    ]
+  },
+  {
+    id: "pop-close-to-you",
+    category: "POP",
+    title: "Close to You",
+    artist: "Carpenters",
+    mood: "로맨틱 / 클래식",
+    description: "상용 음원과 실제 가사 없이, 클래식한 로맨스 무드만 참고한 영어/번역 샘플입니다.",
+    subtitleStyle: "pop-classic",
+    demoOnly: true,
+    subtitles: [
+      {
+        start: 1.4,
+        end: 6.2,
+        text: "Every gentle day leads me to you",
+        translation: "모든 다정한 하루가 당신에게 닿았습니다"
+      },
+      {
+        start: 9.4,
+        end: 15.5,
+        text: "Your smile became my favorite season",
+        translation: "당신의 미소는 내가 가장 사랑하는 계절이 되었습니다"
+      },
+      {
+        start: 19.8,
+        end: 27.8,
+        text: "We kept our promise in quiet hearts",
+        translation: "우리는 조용한 마음으로 약속을 지켜왔습니다"
+      },
+      {
+        start: 33.2,
+        end: 42.2,
+        text: "Now we walk into the light together",
+        translation: "이제 우리는 같은 빛을 향해 함께 걸어갑니다"
+      },
+      {
+        start: 47.8,
+        end: 57.4,
+        text: "Please bless the beginning of our forever",
+        translation: "영원이 될 우리의 시작을 축복해 주세요"
+      }
+    ]
+  }
+];
+
 export const videoRenderInputSchema = z.object({
   version: z.literal(1),
   templateId: z.enum(videoTemplateIds),
+  musicPreset: z
+    .object({
+      id: z.enum(videoMusicPresetIds),
+      category: z.enum(videoMusicCategories),
+      title: z.string(),
+      artist: z.string(),
+      mood: z.string(),
+      subtitleStyle: z.enum(videoSubtitleStyleIds),
+      demoOnly: z.boolean()
+    })
+    .optional(),
   project: z.object({
     id: z.string(),
     title: z.string(),
@@ -67,7 +182,7 @@ export const videoRenderInputSchema = z.object({
       startMs: z.number().int().nonnegative(),
       durationMs: z.number().int().positive(),
       transition: z.object({
-        type: z.literal("fade"),
+        type: z.enum(["fade", "cross-dissolve"]),
         durationMs: z.number().int().nonnegative()
       }),
       motion: z.object({
@@ -82,6 +197,8 @@ export const videoRenderInputSchema = z.object({
       id: z.string(),
       order: z.number().int().nonnegative(),
       text: z.string(),
+      translation: z.string().optional(),
+      style: z.enum(videoSubtitleStyleIds).optional(),
       startMs: z.number().int().nonnegative(),
       endMs: z.number().int().positive()
     })

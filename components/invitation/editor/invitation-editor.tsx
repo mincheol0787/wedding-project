@@ -500,7 +500,7 @@ export function InvitationEditor({
   return (
     <form
       action={formAction}
-      className="grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)] 2xl:grid-cols-[260px_minmax(0,1fr)_minmax(340px,420px)] xl:items-start"
+      className="grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)_minmax(320px,380px)] 2xl:grid-cols-[260px_minmax(0,1fr)_minmax(380px,430px)] xl:items-start"
     >
       <input name="galleryJson" type="hidden" value={galleryJson} />
       <input name="configJson" type="hidden" value={configJson} />
@@ -522,7 +522,7 @@ export function InvitationEditor({
       <input name="mapLat" type="hidden" value={form.mapLat} />
       <input name="mapLng" type="hidden" value={form.mapLng} />
 
-      <aside className="min-w-0 xl:sticky xl:top-20">
+      <aside className="min-w-0 xl:sticky xl:top-20 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <EditorControlRail
           canRedo={future.length > 0}
           canUndo={history.length > 0}
@@ -537,7 +537,7 @@ export function InvitationEditor({
         />
       </aside>
 
-      <div className="min-w-0 grid gap-5">
+      <div className="min-w-0 grid gap-5 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="rounded-md border border-ink/10 bg-white px-5 py-4 shadow-[0_18px_60px_rgba(36,36,36,0.05)]">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sage">Editor</p>
           <div className="mt-2 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
@@ -1186,10 +1186,10 @@ export function InvitationEditor({
         </section>
       </div>
 
-      <aside className="min-w-0 2xl:sticky 2xl:top-20">
-        <div className="rounded-md border border-ink/10 bg-white/95 p-3 shadow-[0_18px_60px_rgba(36,36,36,0.06)]">
+      <aside className="min-w-0 xl:sticky xl:top-20">
+        <div className="rounded-md border border-ink/10 bg-[#f7f2ed]/95 p-3 shadow-[0_18px_60px_rgba(36,36,36,0.06)]">
           <button
-            className="flex w-full items-center justify-between rounded-md border border-ink/10 bg-[#fbfcfb] px-4 py-3 text-left text-sm font-medium text-ink 2xl:hidden"
+            className="flex w-full items-center justify-between rounded-md border border-ink/10 bg-white px-4 py-3 text-left text-sm font-medium text-ink xl:hidden"
             onClick={() => setIsMobilePreviewOpen((value) => !value)}
             type="button"
           >
@@ -1197,7 +1197,7 @@ export function InvitationEditor({
             <span className="text-rose">{isMobilePreviewOpen ? "접기" : "열기"}</span>
           </button>
           <div
-            className={`${isMobilePreviewOpen ? "mt-3 block" : "hidden"} max-h-[calc(100vh-7rem)] overflow-y-auto pr-1 2xl:mt-0 2xl:block`}
+            className={`${isMobilePreviewOpen ? "mt-3 block" : "hidden"} max-h-[calc(100vh-7rem)] overflow-y-auto pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden xl:mt-0 xl:block`}
           >
             <InvitationLivePreview
               brideName={form.brideName}

@@ -1,4 +1,12 @@
-import type { VideoRenderInput, VideoTemplateId } from "@/lib/video/render-input";
+import {
+  videoMusicPresets,
+  type VideoMusicPresetId,
+  type VideoRenderInput,
+  type VideoTemplateId
+} from "@/lib/video/render-input";
+
+type EditorMusicPreset = NonNullable<VideoRenderInput["musicPreset"]>;
+type EditorSubtitleStyle = NonNullable<VideoRenderInput["lyricSegments"][number]["style"]>;
 
 export type EditorImageAsset = {
   id: string;
@@ -24,6 +32,8 @@ export type EditorScene = {
 export type EditorLyricSegment = {
   id: string;
   text: string;
+  translation?: string;
+  style?: EditorSubtitleStyle;
   startMs: number;
   endMs: number;
 };
@@ -45,11 +55,13 @@ export type VideoEditorState = {
   scenes: EditorScene[];
   lyricSegments: EditorLyricSegment[];
   audio?: EditorAudioAsset;
+  musicPreset?: EditorMusicPreset;
 };
 
 export type VideoEditorAction =
   | { type: "set-template"; templateId: VideoTemplateId }
   | { type: "apply-sample-video" }
+  | { type: "apply-music-preset"; presetId: VideoMusicPresetId }
   | { type: "add-images"; images: EditorImageAsset[] }
   | { type: "remove-image"; imageAssetId: string }
   | { type: "move-scene"; sceneId: string; direction: "up" | "down" }
@@ -94,7 +106,10 @@ export function videoEditorReducer(
       };
 
     case "apply-sample-video":
-      return createSpringSampleVideoState(state.project);
+      return createSpringSampleVideoState(state.project, state.musicPreset?.id ?? "kpop-popcorn");
+
+    case "apply-music-preset":
+      return applyMusicPreset(state, action.presetId);
 
     case "add-images": {
       const nextImages = [...state.images, ...action.images];
@@ -201,7 +216,8 @@ export function videoEditorReducer(
 }
 
 export function createSpringSampleVideoState(
-  project: VideoEditorState["project"]
+  project: VideoEditorState["project"],
+  presetId: VideoMusicPresetId = "kpop-popcorn"
 ): VideoEditorState {
   const images: EditorImageAsset[] = [
     ["spring-1", "The day we met", "#ead3d7"],
@@ -219,9 +235,11 @@ export function createSpringSampleVideoState(
     alt: title
   }));
 
+  const preset = createMusicPresetSnapshot(presetId);
+
   return {
     project,
-    templateId: "film-letter",
+    templateId: preset?.subtitleStyle === "kpop-bright" ? "classic-fade" : "film-letter",
     composition: {
       width: 1920,
       height: 1080,
@@ -231,41 +249,11 @@ export function createSpringSampleVideoState(
     scenes: images.map((image, index) => ({
       id: `spring-scene-${index + 1}`,
       imageAssetId: image.id,
-      durationMs: 7500,
+      durationMs: 8500,
       motion: index % 2 === 0 ? "zoom-in" : "zoom-out"
     })),
-    lyricSegments: [
-      {
-        id: "spring-lyric-1",
-        text: "처음 마주한 계절부터",
-        startMs: 1200,
-        endMs: 6200
-      },
-      {
-        id: "spring-lyric-2",
-        text: "서로의 하루가 되어준 우리",
-        startMs: 9000,
-        endMs: 15000
-      },
-      {
-        id: "spring-lyric-3",
-        text: "가장 따뜻한 봄의 끝에서",
-        startMs: 18500,
-        endMs: 24500
-      },
-      {
-        id: "spring-lyric-4",
-        text: "이제 같은 길을 걸어가려 합니다",
-        startMs: 29000,
-        endMs: 37000
-      },
-      {
-        id: "spring-lyric-5",
-        text: "우리의 시작을 함께 축복해 주세요",
-        startMs: 43000,
-        endMs: 53500
-      }
-    ]
+    lyricSegments: createLyricSegmentsFromPreset(presetId),
+    musicPreset: preset
   };
 }
 
@@ -273,10 +261,13 @@ export function buildVideoRenderInput(state: VideoEditorState): VideoRenderInput
   let cursorMs = 0;
 
   const scenes = state.scenes.map((scene, order) => {
-    const startMs = cursorMs;
-    cursorMs += scene.durationMs;
-
     const isZoomIn = scene.motion === "zoom-in";
+    const transitionType: VideoRenderInput["scenes"][number]["transition"]["type"] =
+      order % 3 === 1 ? "cross-dissolve" : "fade";
+    const transitionDurationMs = Math.min(900, Math.floor(scene.durationMs / 3));
+    const startMs = order === 0 ? cursorMs : Math.max(0, cursorMs - transitionDurationMs);
+
+    cursorMs = startMs + scene.durationMs;
 
     return {
       id: scene.id,
@@ -285,8 +276,8 @@ export function buildVideoRenderInput(state: VideoEditorState): VideoRenderInput
       startMs,
       durationMs: scene.durationMs,
       transition: {
-        type: "fade" as const,
-        durationMs: Math.min(700, Math.floor(scene.durationMs / 3))
+        type: transitionType,
+        durationMs: transitionDurationMs
       },
       motion: {
         type: scene.motion,
@@ -299,6 +290,7 @@ export function buildVideoRenderInput(state: VideoEditorState): VideoRenderInput
   return {
     version: 1,
     templateId: state.templateId,
+    musicPreset: state.musicPreset,
     project: state.project,
     composition: {
       ...state.composition,
@@ -323,11 +315,69 @@ export function buildVideoRenderInput(state: VideoEditorState): VideoRenderInput
     scenes,
     lyricSegments: state.lyricSegments
       .map((segment, order) => ({
-        ...segment,
-        order
+        id: segment.id,
+        order,
+        text: segment.text,
+        translation: segment.translation,
+        style: segment.style,
+        startMs: segment.startMs,
+        endMs: segment.endMs
       }))
       .filter((segment) => segment.text.trim().length > 0 && segment.endMs > segment.startMs)
   };
+}
+
+function applyMusicPreset(
+  state: VideoEditorState,
+  presetId: VideoMusicPresetId
+): VideoEditorState {
+  const preset = createMusicPresetSnapshot(presetId);
+
+  if (!preset) {
+    return state;
+  }
+
+  return {
+    ...state,
+    templateId: preset.subtitleStyle === "kpop-bright" ? "classic-fade" : "film-letter",
+    musicPreset: preset,
+    lyricSegments: createLyricSegmentsFromPreset(presetId)
+  };
+}
+
+function createMusicPresetSnapshot(presetId: VideoMusicPresetId): EditorMusicPreset | undefined {
+  const preset = videoMusicPresets.find((item) => item.id === presetId);
+
+  if (!preset) {
+    return undefined;
+  }
+
+  return {
+    id: preset.id,
+    category: preset.category,
+    title: preset.title,
+    artist: preset.artist,
+    mood: preset.mood,
+    subtitleStyle: preset.subtitleStyle,
+    demoOnly: preset.demoOnly
+  };
+}
+
+function createLyricSegmentsFromPreset(presetId: VideoMusicPresetId): EditorLyricSegment[] {
+  const preset = videoMusicPresets.find((item) => item.id === presetId);
+
+  if (!preset) {
+    return [];
+  }
+
+  return preset.subtitles.map((subtitle, index) => ({
+    id: `${preset.id}-subtitle-${index + 1}`,
+    text: subtitle.text,
+    translation: subtitle.translation,
+    style: preset.subtitleStyle,
+    startMs: Math.round(subtitle.start * 1000),
+    endMs: Math.round(subtitle.end * 1000)
+  }));
 }
 
 export function createId(prefix: string) {

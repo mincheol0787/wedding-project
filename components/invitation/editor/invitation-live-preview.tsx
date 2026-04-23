@@ -70,21 +70,21 @@ export function InvitationLivePreview({
   }
 
   return (
-    <div className="rounded-md border border-ink/10 bg-[#20221f] p-4 text-white shadow-[0_20px_70px_rgba(32,34,31,0.16)]">
+    <div className="rounded-md border border-ink/10 bg-[#f7f2ed] p-4 text-ink shadow-[0_20px_70px_rgba(36,36,36,0.08)]">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#d9b1a3]">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-rose">
             Live Preview
           </p>
-          <p className="mt-1 text-sm text-white/58">선택한 템플릿과 폰트가 바로 반영됩니다.</p>
+          <p className="mt-1 text-sm text-ink/55">선택한 템플릿과 폰트가 바로 반영됩니다.</p>
         </div>
-        <span className="rounded-md border border-white/12 bg-white/8 px-3 py-1 text-xs font-medium text-white/80">
+        <span className="rounded-md border border-ink/10 bg-white px-3 py-1 text-xs font-medium text-ink/65">
           {template.name}
         </span>
       </div>
 
       <div
-        className={`mx-auto max-w-[430px] overflow-hidden rounded-md border border-white/10 bg-white text-ink shadow-[0_22px_70px_rgba(0,0,0,0.25)] ${getFontClass(
+        className={`mx-auto max-w-[430px] overflow-hidden rounded-md border border-white bg-white text-ink shadow-[0_24px_80px_rgba(36,36,36,0.12)] ${getFontClass(
           config.design.fontPreset
         )}`}
       >
@@ -102,7 +102,7 @@ export function InvitationLivePreview({
               unoptimized
             />
           ) : null}
-          {coverImage ? <div className="absolute inset-0 bg-black/18" /> : null}
+          {coverImage ? <div className="absolute inset-0 bg-ink/16" /> : null}
           <div
             className="absolute inset-x-6 top-1/2"
             style={{
