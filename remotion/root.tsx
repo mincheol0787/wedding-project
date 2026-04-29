@@ -1,5 +1,5 @@
 import { Composition } from "remotion";
-import { defaultVideoRenderInput, type VideoRenderInput } from "@/lib/video/render-input";
+import { defaultVideoRenderInput, type VideoRenderInput } from "../lib/video/render-input";
 import { WeddingVideo } from "./wedding-video";
 
 export function RemotionRoot() {

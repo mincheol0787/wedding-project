@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { ReactNode, useState } from "react";
+import { KakaoMapEmbed } from "@/components/invitation/shared/kakao-map";
 import {
   invitationTemplates,
   type InvitationConfig,
@@ -19,6 +20,8 @@ type InvitationLivePreviewProps = {
   venueName: string;
   venueAddress: string;
   venueDetail: string;
+  mapLat: string;
+  mapLng: string;
   eventDate: string;
   gallery: InvitationGalleryItem[];
   config: InvitationConfig;
@@ -35,6 +38,8 @@ export function InvitationLivePreview({
   venueName,
   venueAddress,
   venueDetail,
+  mapLat,
+  mapLng,
   eventDate,
   gallery,
   config,
@@ -45,6 +50,7 @@ export function InvitationLivePreview({
   const previewGallery = gallery.slice(0, 3);
   const coverImage =
     gallery.find((item) => item.id === config.galleryOptions.mainImageId) ?? gallery[0];
+  const mapCoordinates = getMapCoordinates(mapLat, mapLng);
   const [draggingSectionId, setDraggingSectionId] = useState<InvitationSectionId | null>(null);
 
   function wrapPreviewSection(sectionId: InvitationSectionId, children: ReactNode) {
@@ -217,6 +223,16 @@ export function InvitationLivePreview({
                       {config.venueGuide.extra ? <p>{config.venueGuide.extra}</p> : null}
                     </div>
                   ) : null}
+                  {mapCoordinates ? (
+                    <div className="mt-4 overflow-hidden rounded-md border border-ink/10 bg-white p-2">
+                      <KakaoMapEmbed
+                        address={venueAddress}
+                        lat={mapCoordinates.lat}
+                        lng={mapCoordinates.lng}
+                        title={venueName || "예식 장소"}
+                      />
+                    </div>
+                  ) : null}
                 </div>
               </section>
             );
@@ -346,6 +362,17 @@ function getFontClass(fontPreset: InvitationConfig["design"]["fontPreset"]) {
     default:
       return "font-serif";
   }
+}
+
+function getMapCoordinates(lat?: string | null, lng?: string | null) {
+  const parsedLat = Number(lat);
+  const parsedLng = Number(lng);
+
+  if (!Number.isFinite(parsedLat) || !Number.isFinite(parsedLng)) {
+    return null;
+  }
+
+  return { lat: parsedLat, lng: parsedLng };
 }
 
 function getPreviewGalleryClass(displayMode: InvitationConfig["galleryOptions"]["displayMode"]) {

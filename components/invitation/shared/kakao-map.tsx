@@ -33,15 +33,13 @@ type KakaoMapEmbedProps = {
   address?: string | null;
 };
 
-const fallbackPublicKakaoKey = "b73fce1a2f47ebc9277b88a84ab709a6";
-
 export function KakaoMapEmbed({ lat, lng, title, address }: KakaoMapEmbedProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<KakaoMapStatus>("loading");
   const appKey =
     process.env.NEXT_PUBLIC_KAKAO_MAP_APP_KEY ||
     process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY ||
-    fallbackPublicKakaoKey;
+    "";
 
   useEffect(() => {
     if (!containerRef.current || !appKey) {

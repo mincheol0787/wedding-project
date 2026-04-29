@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useActionState, useEffect, useMemo, useRef, useState, type SyntheticEvent } from "react";
 import { InvitationLivePreview } from "@/components/invitation/editor/invitation-live-preview";
+import { KakaoMapEmbed } from "@/components/invitation/shared/kakao-map";
 import {
   saveInvitationAction,
   type InvitationSaveState
@@ -562,6 +563,7 @@ export function InvitationEditor({
           placeUrl: config.placeSearch.placeUrl
         }
       : null;
+  const selectedPlaceCoordinates = getMapCoordinates(selectedPlace?.lat, selectedPlace?.lng);
 
   return (
     <form
@@ -603,6 +605,8 @@ export function InvitationEditor({
               gallery={gallery}
               greeting={form.greeting}
               groomName={form.groomName}
+              mapLat={form.mapLat}
+              mapLng={form.mapLng}
               onMoveSection={moveSection}
               title={form.title}
               venueAddress={form.venueAddress}
@@ -955,6 +959,21 @@ export function InvitationEditor({
               <div className="h-1.5 overflow-hidden rounded-full bg-white">
                 <div className="h-full w-1/3 animate-[soft-loading_1.15s_ease-in-out_infinite] rounded-full bg-sage/70" />
               </div>
+              {selectedPlaceCoordinates ? (
+                <div className="md:col-span-2">
+                  <div className="overflow-hidden rounded-md border border-ink/10 bg-white p-2">
+                    <KakaoMapEmbed
+                      address={selectedPlace?.address}
+                      lat={selectedPlaceCoordinates.lat}
+                      lng={selectedPlaceCoordinates.lng}
+                      title={selectedPlace?.name ?? "예식 장소"}
+                    />
+                  </div>
+                  <p className="mt-2 text-xs leading-5 text-ink/45">
+                    주소 검색 결과를 선택하면 여기에서 바로 지도를 확인할 수 있어요.
+                  </p>
+                </div>
+              ) : null}
             </div>
           ) : null}
           {placeResults.length ? (
@@ -1605,4 +1624,15 @@ function readFileAsDataUrl(file: File) {
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(file);
   });
+}
+
+function getMapCoordinates(lat?: string | null, lng?: string | null) {
+  const parsedLat = Number(lat);
+  const parsedLng = Number(lng);
+
+  if (!Number.isFinite(parsedLat) || !Number.isFinite(parsedLng)) {
+    return null;
+  }
+
+  return { lat: parsedLat, lng: parsedLng };
 }

@@ -1,8 +1,12 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { prisma } from "@/lib/prisma";
-import { videoRenderInputSchema } from "@/lib/video/render-input";
+import {
+  defaultVideoRenderInput,
+  videoRenderInputSchema,
+  type VideoRenderInput
+} from "@/lib/video/render-input";
 import {
   markRenderJobFailed,
   markRenderJobProcessing,
@@ -44,20 +48,24 @@ export async function executeRenderJob(renderJobId: string, attempt: number) {
 
   await mkdir(tmpDir, { recursive: true });
   await mkdir(publicRenderDir, { recursive: true });
-  await writeFile(propsPath, JSON.stringify({ input: parsed.data }, null, 2), "utf8");
+  const renderInput = normalizeRenderInput(parsed.data);
+
+  await writeFile(propsPath, JSON.stringify({ input: renderInput }, null, 2), "utf8");
   await updateRenderJobProgress(renderJobId, 25);
 
   if (await isRenderJobCanceled(renderJobId)) {
     return;
   }
 
-  await runRemotionRender(propsPath, outputPath);
+  await runRemotionRender(path.relative(workspaceRoot, propsPath), path.relative(workspaceRoot, outputPath));
 
   if (await isRenderJobCanceled(renderJobId)) {
     return;
   }
 
   await updateRenderJobProgress(renderJobId, 90);
+
+  const outputFile = await stat(outputPath).catch(() => ({ size: 0 }));
 
   const outputAsset = await prisma.mediaAsset.create({
     data: {
@@ -70,11 +78,42 @@ export async function executeRenderJob(renderJobId: string, attempt: number) {
       url: `/renders/${outputFileName}`,
       fileName: outputFileName,
       contentType: "video/mp4",
-      sizeBytes: 0
+      sizeBytes: outputFile.size
     }
   });
 
   await markRenderJobSucceeded(renderJobId, outputAsset.id);
+}
+
+function normalizeRenderInput(input: VideoRenderInput): VideoRenderInput {
+  const fallbackImages = defaultVideoRenderInput.assets.images;
+  const images = input.assets.images.map((asset, index) => {
+    if (isServerRenderableSource(asset.src)) {
+      return asset;
+    }
+
+    const fallback = fallbackImages[index % fallbackImages.length] ?? fallbackImages[0];
+
+    return {
+      ...asset,
+      src: fallback.src
+    };
+  });
+  const audio =
+    input.assets.audio && isServerRenderableSource(input.assets.audio.src) ? input.assets.audio : undefined;
+
+  return {
+    ...input,
+    assets: {
+      ...input.assets,
+      audio,
+      images
+    }
+  };
+}
+
+function isServerRenderableSource(src: string) {
+  return src.startsWith("http://") || src.startsWith("https://") || src.startsWith("data:") || src.startsWith("/");
 }
 
 async function isRenderJobCanceled(renderJobId: string) {
@@ -93,24 +132,27 @@ async function isRenderJobCanceled(renderJobId: string) {
 
 function runRemotionRender(propsPath: string, outputPath: string) {
   return new Promise<void>((resolve, reject) => {
-    const child = spawn(
-      process.platform === "win32" ? "npx.cmd" : "npx",
-      [
-        "remotion",
-        "render",
-        "remotion/index.ts",
-        "WeddingVideo",
-        outputPath,
-        "--props",
-        propsPath,
-        "--overwrite"
-      ],
-      {
-        cwd: process.cwd(),
-        env: process.env,
-        stdio: "pipe"
-      }
-    );
+    const args = [
+      "remotion",
+      "render",
+      "remotion/index.ts",
+      "WeddingVideo",
+      outputPath,
+      `--props=${propsPath}`,
+      "--overwrite"
+    ];
+    const child =
+      process.platform === "win32"
+        ? spawn("cmd.exe", ["/d", "/c", ["npx", ...args.map(quoteWindowsArg)].join(" ")], {
+            cwd: process.cwd(),
+            env: process.env,
+            stdio: "pipe"
+          })
+        : spawn("npx", args, {
+            cwd: process.cwd(),
+            env: process.env,
+            stdio: "pipe"
+          });
 
     let stderr = "";
 
@@ -128,4 +170,12 @@ function runRemotionRender(propsPath: string, outputPath: string) {
       reject(new Error(stderr || `Remotion exited with code ${code}`));
     });
   });
+}
+
+function quoteWindowsArg(arg: string) {
+  if (!/[\s&()^|<>"]/.test(arg)) {
+    return arg;
+  }
+
+  return `"${arg.replace(/"/g, '""')}"`;
 }

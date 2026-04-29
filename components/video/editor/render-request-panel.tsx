@@ -8,57 +8,64 @@ type RenderRequestPanelProps = {
   projectId: string;
   renderInput: VideoRenderInput;
   requiredPhotoCount: number;
+  estimatedTimeLabel?: string;
+  onRequested?: () => void;
 };
 
 export function RenderRequestPanel({
   projectId,
   renderInput,
-  requiredPhotoCount
+  requiredPhotoCount,
+  estimatedTimeLabel,
+  onRequested
 }: RenderRequestPanelProps) {
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<string>();
   const [error, setError] = useState<string>();
+
   const checklist = useMemo(
     () => [
       {
-        label: "노래 분위기",
+        label: "영상 분위기 선택",
         done: Boolean(renderInput.musicPreset),
-        help: "영상에 사용할 노래 분위기를 선택해 주세요."
+        help: "어떤 감성으로 영상을 만들지 먼저 정해두면 사진 흐름과 자막 톤이 자연스럽게 맞춰져요."
       },
       {
-        label: "사진",
+        label: "사진 준비",
         done: renderInput.assets.images.length >= requiredPhotoCount && renderInput.scenes.length >= requiredPhotoCount,
-        help: `${requiredPhotoCount}장의 사진이 필요해요.`
+        help: `이 영상은 최소 ${requiredPhotoCount}장의 사진이 필요해요.`
       },
       {
-        label: "사진 흐름",
+        label: "사진 흐름 정리",
         done: renderInput.scenes.length > 0 && renderInput.composition.durationMs >= 30_000,
-        help: "사진 순서와 표시 시간을 확인해 주세요."
+        help: "사진 순서와 구간 길이를 정리하면 영상이 끊기지 않고 부드럽게 이어져요."
       },
       {
-        label: "영상 문구",
+        label: "자막 확인",
         done: renderInput.lyricSegments.length > 0,
-        help: "영상에 표시할 문구를 1개 이상 입력해 주세요."
+        help: "화면에 보여줄 문구를 1개 이상 넣어주세요."
       }
     ],
     [renderInput, requiredPhotoCount]
   );
+
   const requiredReady = checklist.every((item) => item.done);
-  const readyPercent = Math.round(
-    (checklist.filter((item) => item.done).length / checklist.length) * 100
-  );
+  const readyPercent = Math.round((checklist.filter((item) => item.done).length / checklist.length) * 100);
 
   return (
     <div className="grid gap-4 rounded-md border border-ink/10 bg-white p-5 shadow-sm">
       <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">
-          Video Production
-        </p>
-        <h2 className="mt-2 text-2xl font-semibold text-ink">영상 제작 요청</h2>
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Video Production</p>
+        <h2 className="mt-2 text-2xl font-semibold text-ink">영상 만들기</h2>
         <p className="mt-2 text-sm leading-6 text-ink/60">
-          준비가 끝나면 영상을 만들 수 있어요. 완료 안내는 현재 서비스 내 상태 화면으로 제공하고,
-          SMS와 카카오 알림은 추후 확장 예정입니다.
+          준비가 끝나면 여기서 바로 영상 제작을 시작할 수 있어요. 제작이 끝나면 서비스 안에서 상태를 바로 확인할 수
+          있고, SMS와 카카오 알림은 추후 확장 예정으로 남겨두었습니다.
         </p>
+      </div>
+
+      <div className="rounded-md border border-sage/15 bg-sage/5 px-4 py-3 text-sm text-ink/70">
+        <p className="font-medium text-ink">예상 제작 시간</p>
+        <p className="mt-1">{estimatedTimeLabel ?? "영상 제작은 약 1~3분 정도 소요돼요."}</p>
       </div>
 
       <div>
@@ -86,14 +93,14 @@ export function RenderRequestPanel({
                 item.done ? "bg-sage/10 text-sage" : "bg-rose/10 text-rose"
               }`}
             >
-              {item.done ? "완료" : "필요"}
+              {item.done ? "완료" : "확인 필요"}
             </span>
           </div>
         ))}
       </div>
 
       <button
-        className="rounded-md bg-ink px-5 py-3 text-sm font-medium text-white transition hover:bg-ink/88 disabled:opacity-45"
+        className="rounded-md bg-ink px-5 py-3 text-sm font-medium text-white transition hover:bg-ink/88 disabled:cursor-not-allowed disabled:opacity-45"
         disabled={pending || !requiredReady}
         onClick={() => {
           if (pending || !requiredReady) {
@@ -104,23 +111,36 @@ export function RenderRequestPanel({
             setMessage(undefined);
             setError(undefined);
 
-            const result = await requestRenderAction(projectId, renderInput);
+            try {
+              const result = await requestRenderAction(projectId, renderInput);
 
-            if (result.error) {
-              setError(result.error);
-              return;
+              if (result.error) {
+                setError(result.error);
+                return;
+              }
+
+              setMessage(
+                result.message ??
+                  "영상 제작이 시작되었습니다. 완료되면 서비스 내 상태 화면에서 바로 확인할 수 있어요."
+              );
+              onRequested?.();
+            } catch (requestError) {
+              setError(
+                requestError instanceof Error
+                  ? requestError.message
+                  : "영상 제작 요청 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요."
+              );
             }
-
-            setMessage(result.message);
           });
         }}
         type="button"
       >
-        {pending ? "제작 요청 중..." : "영상 제작 시작하기"}
+        {pending ? "영상 제작을 시작하고 있어요..." : "영상 제작 시작하기"}
       </button>
+
       {!requiredReady ? (
         <p className="text-sm text-rose">
-          노래, 사진, 사진 흐름, 문구가 모두 준비되면 영상 제작을 시작할 수 있어요.
+          노래 선택, 사진, 사진 흐름, 자막까지 모두 준비되면 바로 영상 제작을 시작할 수 있어요.
         </p>
       ) : null}
       {message ? <p className="rounded-md bg-sage/10 px-3 py-2 text-sm text-sage">{message}</p> : null}

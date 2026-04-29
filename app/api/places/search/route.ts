@@ -48,7 +48,10 @@ const fallbackPlaces = [
 ];
 
 export async function GET(request: NextRequest) {
-  const query = request.nextUrl.searchParams.get("q")?.trim() ?? "";
+  const query =
+    request.nextUrl.searchParams.get("q")?.trim() ||
+    request.nextUrl.searchParams.get("query")?.trim() ||
+    "";
 
   if (!query) {
     return NextResponse.json(

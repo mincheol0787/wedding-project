@@ -10,6 +10,7 @@ import {
   type ChangeEvent,
   type DragEvent
 } from "react";
+import { RenderRequestPanel } from "@/components/video/editor/render-request-panel";
 import {
   buildVideoRenderInput,
   createId,
@@ -28,7 +29,6 @@ import {
   type VideoSubtitleSizeId,
   type VideoSubtitleStyleId
 } from "@/lib/video/render-input";
-import { RenderRequestPanel } from "@/components/video/editor/render-request-panel";
 
 type VideoEditorProps = {
   projectId: string;
@@ -48,22 +48,22 @@ const videoSteps: VideoStep[] = [
   {
     id: "music",
     label: "노래 선택",
-    description: "영상 분위기와 필요한 사진 수를 정해요."
+    description: "영상 분위기와 필요한 사진 수를 먼저 정해요."
   },
   {
     id: "upload",
     label: "사진 업로드",
-    description: "필요한 사진을 채우고 순서를 확인해요."
+    description: "필요한 수만큼 사진을 채우고 순서를 확인해요."
   },
   {
     id: "arrange",
-    label: "사진 셋팅",
-    description: "각 구간에 들어갈 사진과 움직임을 맞춰요."
+    label: "사진 설정",
+    description: "구간별 사진과 움직임을 영상 흐름에 맞게 다듬어요."
   },
   {
     id: "lyrics",
     label: "가사 수정",
-    description: "영상에 들어갈 문구를 자연스럽게 다듬어요."
+    description: "문구와 자막 스타일을 완성도 있게 정리해요."
   }
 ];
 
@@ -74,18 +74,18 @@ const subtitleStyleOptions: Array<{
 }> = [
   {
     id: "kpop-bright",
-    label: "밝고 산뜻한 자막",
-    description: "또렷한 산세리프와 화사한 톤으로 경쾌하게 보여줘요."
+    label: "밝고 설레는 자막",
+    description: "발랄하고 환한 톤으로 첫 시작 장면에 잘 어울려요."
   },
   {
     id: "kpop-deep",
-    label: "차분한 감성 자막",
-    description: "로맨틱한 색감과 깊은 분위기로 한층 더 따뜻하게 표현해요."
+    label: "감성적인 자막",
+    description: "차분하고 깊은 무드로 사랑의 여운을 길게 남겨줘요."
   },
   {
     id: "pop-classic",
-    label: "클래식 자막",
-    description: "세리프 중심의 우아한 타이포로 고급스럽게 정리해요."
+    label: "클래식한 2줄 자막",
+    description: "영문과 번역을 함께 쓰는 로맨틱한 분위기에 잘 맞아요."
   }
 ];
 
@@ -96,14 +96,14 @@ const subtitleColorThemeOptions: Array<{
 }> = [
   { id: "peach-glow", label: "피치 글로우", preview: "linear-gradient(135deg,#ffe7de,#ffd5b8)" },
   { id: "rose-gold", label: "로즈 골드", preview: "linear-gradient(135deg,#f5d3dd,#d9b1a3)" },
-  { id: "ivory-light", label: "아이보리", preview: "linear-gradient(135deg,#fff7ea,#fff1d4)" }
+  { id: "ivory-light", label: "아이보리 라이트", preview: "linear-gradient(135deg,#fff7ea,#fff1d4)" }
 ];
 
 const subtitlePositionOptions: Array<{
   id: VideoSubtitlePositionId;
   label: string;
 }> = [
-  { id: "center", label: "중앙" },
+  { id: "center", label: "가운데" },
   { id: "bottom", label: "하단" }
 ];
 
@@ -116,15 +116,42 @@ const subtitleSizeOptions: Array<{
   { id: "lg", label: "크게" }
 ];
 
+const subtitleThemeClassMap: Record<
+  VideoSubtitleColorThemeId,
+  { badge: string; panel: string; text: string; translation: string }
+> = {
+  "peach-glow": {
+    panel: "border-white/45 bg-[linear-gradient(135deg,rgba(255,247,240,0.38),rgba(255,226,204,0.18))]",
+    text: "text-[#fff7f1]",
+    translation: "text-white/82",
+    badge: "bg-white/20 text-white"
+  },
+  "rose-gold": {
+    panel: "border-white/35 bg-[linear-gradient(135deg,rgba(245,211,221,0.28),rgba(201,168,156,0.16))]",
+    text: "text-[#fff4f6]",
+    translation: "text-[#f7e3e8]",
+    badge: "bg-white/18 text-[#fff6f7]"
+  },
+  "ivory-light": {
+    panel: "border-white/50 bg-[linear-gradient(135deg,rgba(255,250,238,0.34),rgba(255,244,212,0.16))]",
+    text: "text-[#fffaf2]",
+    translation: "text-[#fff0d6]",
+    badge: "bg-white/18 text-[#fffdf8]"
+  }
+};
+
+const placeholderTokens = [
+  { label: "신랑 이름", value: "{신랑이름}" },
+  { label: "신부 이름", value: "{신부이름}" },
+  { label: "예식 날짜", value: "{날짜}" }
+] as const;
+
 export function VideoEditor({ projectId, project, onRenderRequested }: VideoEditorProps) {
-  const [state, dispatch] = useReducer(
-    videoEditorReducer,
-    project,
-    createInitialVideoEditorState
-  );
+  const [state, dispatch] = useReducer(videoEditorReducer, project, createInitialVideoEditorState);
   const [currentStep, setCurrentStep] = useState<VideoStepId>("music");
   const [activeSceneId, setActiveSceneId] = useState<string>();
   const objectUrlsRef = useRef<string[]>([]);
+
   const renderInput = useMemo(() => buildVideoRenderInput(state), [state]);
   const selectedPreset = useMemo(
     () => videoMusicPresets.find((preset) => preset.id === state.musicPreset?.id),
@@ -132,14 +159,6 @@ export function VideoEditor({ projectId, project, onRenderRequested }: VideoEdit
   );
   const requiredPhotoCount = selectedPreset?.requiredPhotoCount ?? 10;
   const visibleScenes = state.scenes.slice(0, Math.max(requiredPhotoCount, state.scenes.length));
-  const stepCompletion: Record<VideoStepId, boolean> = {
-    music: Boolean(state.musicPreset),
-    upload: state.images.length >= requiredPhotoCount,
-    arrange:
-      state.scenes.length >= requiredPhotoCount &&
-      state.scenes.slice(0, requiredPhotoCount).every((scene) => scene.durationMs > 0),
-    lyrics: renderInput.lyricSegments.length > 0
-  };
   const activeScene = visibleScenes.find((scene) => scene.id === activeSceneId) ?? visibleScenes[0];
   const activeImage = activeScene
     ? state.images.find((image) => image.id === activeScene.imageAssetId)
@@ -148,6 +167,16 @@ export function VideoEditor({ projectId, project, onRenderRequested }: VideoEdit
     state.lyricSegments.find((segment) => segment.style)?.style ??
     state.musicPreset?.subtitleStyle ??
     "kpop-bright";
+  const firstFilledLyric = state.lyricSegments.find((segment) => segment.text.trim().length > 0);
+
+  const stepCompletion: Record<VideoStepId, boolean> = {
+    music: Boolean(state.musicPreset),
+    upload: state.images.length >= requiredPhotoCount,
+    arrange:
+      state.scenes.length >= requiredPhotoCount &&
+      state.scenes.slice(0, requiredPhotoCount).every((scene) => scene.durationMs > 0),
+    lyrics: renderInput.lyricSegments.length > 0
+  };
 
   useEffect(() => {
     const objectUrls = objectUrlsRef.current;
@@ -263,18 +292,22 @@ export function VideoEditor({ projectId, project, onRenderRequested }: VideoEdit
   }
 
   const currentStepReady = stepCompletion[currentStep];
+  const subtitlePreviewText = firstFilledLyric
+    ? resolveLyricTemplate(firstFilledLyric.text, state.project)
+    : "";
+  const subtitlePreviewTranslation = firstFilledLyric?.translation
+    ? resolveLyricTemplate(firstFilledLyric.translation, state.project)
+    : undefined;
 
   return (
     <div className="grid gap-6">
       <section className="rounded-md border border-ink/10 bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">
-              Wedding Video Maker
-            </p>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Wedding Video Maker</p>
             <h2 className="mt-2 text-2xl font-semibold text-ink">식전영상 만들기 순서</h2>
             <p className="mt-2 text-sm leading-6 text-ink/60">
-              노래 분위기를 고르고, 필요한 사진을 채운 뒤 영상 흐름과 문구를 차례대로 맞춰보세요.
+              노래 분위기를 고르고, 필요한 사진을 채운 뒤, 영상 흐름과 자막을 차례대로 다듬을 수 있게 구성했어요.
             </p>
           </div>
           <button
@@ -282,7 +315,7 @@ export function VideoEditor({ projectId, project, onRenderRequested }: VideoEdit
             onClick={applySampleFlow}
             type="button"
           >
-            1분 샘플로 흐름 보기
+            1분 샘플 흐름 불러오기
           </button>
         </div>
 
@@ -409,21 +442,11 @@ export function VideoEditor({ projectId, project, onRenderRequested }: VideoEdit
             renderInputDurationMs={renderInput.composition.durationMs}
             requiredPhotoCount={requiredPhotoCount}
             selectedPreset={selectedPreset}
-            subtitleAppearance={state.subtitleAppearance}
-            subtitlePreviewText={resolveLyricTemplate(
-              state.lyricSegments.find((segment) => segment.text.trim().length > 0)?.text ?? "",
-              state.project
-            )}
-            subtitlePreviewTranslation={
-              state.lyricSegments.find((segment) => segment.text.trim().length > 0)?.translation
-                ? resolveLyricTemplate(
-                    state.lyricSegments.find((segment) => segment.text.trim().length > 0)?.translation ?? "",
-                    state.project
-                  )
-                : undefined
-            }
-            subtitleStyle={selectedSubtitleStyle}
             state={state}
+            subtitleAppearance={state.subtitleAppearance}
+            subtitlePreviewText={subtitlePreviewText}
+            subtitlePreviewTranslation={subtitlePreviewTranslation}
+            subtitleStyle={selectedSubtitleStyle}
             totalStepCount={videoSteps.length}
           />
           <RenderRequestPanel
@@ -472,9 +495,7 @@ function StepProgress({
             onClick={() => onStepChange(step.id)}
             type="button"
           >
-            <span className="text-xs font-semibold uppercase tracking-[0.16em] opacity-70">
-              Step {index + 1}
-            </span>
+            <span className="text-xs font-semibold uppercase tracking-[0.16em] opacity-70">Step {index + 1}</span>
             <span className="mt-2 block text-lg font-semibold">{step.label}</span>
             <span className="mt-2 block text-sm leading-6 opacity-70">{step.description}</span>
             <span
@@ -486,7 +507,7 @@ function StepProgress({
                     : "bg-ink/5 text-ink/45"
               }`}
             >
-              {isActive ? "진행 중" : isDone ? "완료" : "준비"}
+              {isActive ? "진행 중" : isDone ? "완료" : "준비 전"}
             </span>
           </button>
         );
@@ -512,10 +533,10 @@ function MusicStep({
     <section className="grid gap-5 rounded-md border border-ink/10 bg-white p-5 shadow-sm">
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Step 1</p>
-        <h2 className="mt-2 text-2xl font-semibold text-ink">노래와 영상 분위기를 선택해 주세요</h2>
+        <h2 className="mt-2 text-2xl font-semibold text-ink">노래와 영상 분위기를 골라주세요</h2>
         <p className="mt-2 text-sm leading-6 text-ink/60">
-          실제 상용 음원과 가사는 포함하지 않습니다. 여기서는 분위기와 영상 구성을 고르고,
-          필요한 경우 직접 보유한 음악 파일을 연결할 수 있어요.
+          실제 상용 음원을 직접 제공하지는 않지만, 분위기와 구성에 맞춘 샘플 흐름으로 어떤 느낌의 영상을 만들지 먼저
+          정할 수 있어요.
         </p>
       </div>
 
@@ -544,7 +565,7 @@ function MusicStep({
               <span className="mt-3 block text-sm leading-6 text-ink/60">{preset.tone}</span>
               <span className="mt-4 grid gap-2 text-sm text-ink/65">
                 <span>이 영상은 {preset.requiredPhotoCount}장의 사진이 필요해요.</span>
-                <span>약 {preset.durationSeconds}초 구성입니다.</span>
+                <span>약 {preset.durationSeconds}초 길이예요.</span>
                 <span>{preset.mood}</span>
               </span>
               <span
@@ -562,10 +583,10 @@ function MusicStep({
       <div className="rounded-md border border-sage/20 bg-sage/10 p-4">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="font-semibold text-ink">내 음악 파일 연결</p>
+            <p className="font-semibold text-ink">보유한 음악 파일 연결</p>
             <p className="mt-1 text-sm leading-6 text-ink/60">
-              샘플 카드는 분위기와 자막 예시만 제공합니다. 실제 제작에는 사용자가 보유한 파일을
-              연결하는 구조로 확장됩니다.
+              샘플 카드는 분위기와 자막 예시를 위한 장치예요. 원한다면 직접 가지고 있는 음원 파일을 연결하는 구조로
+              확장할 수 있게 준비해두었습니다.
             </p>
           </div>
           <label className="inline-flex w-fit cursor-pointer rounded-md bg-sage px-5 py-3 text-sm font-medium text-white">
@@ -581,6 +602,7 @@ function MusicStep({
             />
           </label>
         </div>
+
         {audio ? (
           <div className="mt-4 rounded-md border border-white/70 bg-white p-4">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -628,10 +650,9 @@ function UploadStep({
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Step 2</p>
-          <h2 className="mt-2 text-2xl font-semibold text-ink">사진을 업로드해 주세요</h2>
+          <h2 className="mt-2 text-2xl font-semibold text-ink">사진을 업로드해주세요</h2>
           <p className="mt-2 text-sm leading-6 text-ink/60">
-            필요한 사진 수만큼 채워지면 다음 단계로 이동할 수 있어요. 업로드한 순서가 영상의
-            기본 흐름이 됩니다.
+            필요한 사진 수를 채워야 다음 단계로 넘어갈 수 있어요. 업로드한 순서가 영상의 기본 흐름이 됩니다.
           </p>
         </div>
         <div className="rounded-md bg-porcelain px-4 py-3 text-sm font-medium text-ink">
@@ -645,11 +666,11 @@ function UploadStep({
         onDrop={onDrop}
       >
         <span>
-          <span className="block text-lg font-semibold text-ink">사진을 이곳에 끌어오거나 선택해 주세요</span>
+          <span className="block text-lg font-semibold text-ink">사진을 끌어다 놓거나 선택해주세요</span>
           <span className="mt-2 block text-sm leading-6 text-ink/55">
             {remainingCount > 0
               ? `다음 단계로 가려면 ${remainingCount}장이 더 필요해요.`
-              : "필요한 사진 수를 채웠어요. 순서를 확인해 주세요."}
+              : "필요한 사진 수를 모두 채웠어요. 순서를 확인해주세요."}
           </span>
           <span className="mt-5 inline-flex rounded-md bg-ink px-5 py-3 text-sm font-medium text-white">
             사진 선택
@@ -684,9 +705,7 @@ function UploadStep({
                 <div>
                   <p className="text-xs font-semibold text-rose">사진 {index + 1}</p>
                   <p className="mt-1 break-all text-sm font-medium text-ink">{image.fileName}</p>
-                  <p className="mt-2 text-xs text-ink/50">
-                    기본 길이 {Math.round(scene.durationMs / 1000)}초
-                  </p>
+                  <p className="mt-2 text-xs text-ink/50">기본 길이 {Math.round(scene.durationMs / 1000)}초</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <button
@@ -740,7 +759,7 @@ function ArrangeStep({
   if (scenes.length === 0) {
     return (
       <section className="rounded-md border border-dashed border-ink/20 bg-white p-8 text-center">
-        <p className="font-medium text-ink">먼저 사진을 업로드해 주세요.</p>
+        <p className="font-medium text-ink">먼저 사진을 업로드해주세요.</p>
         <p className="mt-2 text-sm text-ink/55">사진이 있어야 영상 흐름을 맞출 수 있어요.</p>
       </section>
     );
@@ -750,10 +769,10 @@ function ArrangeStep({
     <section className="grid gap-5 rounded-md border border-ink/10 bg-white p-5 shadow-sm">
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Step 3</p>
-        <h2 className="mt-2 text-2xl font-semibold text-ink">사진이 나오는 순서를 맞춰 주세요</h2>
+        <h2 className="mt-2 text-2xl font-semibold text-ink">사진 흐름과 순서를 맞춰주세요</h2>
         <p className="mt-2 text-sm leading-6 text-ink/60">
-          구간을 선택하면 오른쪽 미리보기에도 같은 사진이 표시됩니다. 각 구간에서 사진을 교체하거나
-          움직임을 바꿀 수 있어요.
+          구간을 선택하면 오른쪽 미리보기에도 같은 사진이 보여요. 각 구간에서 사진을 교체하거나 움직임을 바꿀 수
+          있어요.
         </p>
       </div>
 
@@ -853,27 +872,37 @@ function ArrangeStep({
 function LyricsStep({
   lyricSegments,
   onAddLyric,
+  onApplyStyle,
   onRefreshPresetLyrics,
   onRemoveLyric,
   onUpdateLyric,
-  selectedPresetLabel
+  onUpdateSubtitleAppearance,
+  project,
+  selectedPresetLabel,
+  selectedStyle,
+  subtitleAppearance
 }: {
   lyricSegments: VideoEditorState["lyricSegments"];
   onAddLyric: () => void;
+  onApplyStyle: (style: VideoSubtitleStyleId) => void;
   onRefreshPresetLyrics: () => void;
   onRemoveLyric: (lyricId: string) => void;
   onUpdateLyric: (lyricId: string, patch: Partial<VideoEditorState["lyricSegments"][number]>) => void;
+  onUpdateSubtitleAppearance: (patch: Partial<VideoEditorState["subtitleAppearance"]>) => void;
+  project: VideoEditorState["project"];
   selectedPresetLabel?: string;
+  selectedStyle: VideoSubtitleStyleId;
+  subtitleAppearance: VideoEditorState["subtitleAppearance"];
 }) {
   return (
     <section className="grid gap-5 rounded-md border border-ink/10 bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Step 4</p>
-          <h2 className="mt-2 text-2xl font-semibold text-ink">영상에 들어갈 문구를 수정해 주세요</h2>
+          <h2 className="mt-2 text-2xl font-semibold text-ink">자막과 문구를 다듬어주세요</h2>
           <p className="mt-2 text-sm leading-6 text-ink/60">
-            실제 상용곡 가사는 제공하지 않습니다. 선택한 분위기에 맞춘 데모 문구를 자유롭게 바꿔
-            사용하세요.
+            전체 가사를 처음부터 다시 쓸 필요는 없어요. 필요한 부분만 바꾸면 바로 미리보기에 반영되도록
+            정리해두었습니다.
           </p>
         </div>
         {selectedPresetLabel ? (
@@ -888,47 +917,200 @@ function LyricsStep({
       </div>
 
       {selectedPresetLabel ? (
-        <div className="rounded-md bg-porcelain px-4 py-3 text-sm text-ink/65">
-          선택한 분위기: <span className="font-medium text-ink">{selectedPresetLabel}</span>
+        <div className="rounded-md border border-ink/10 bg-porcelain px-4 py-3 text-sm text-ink/65">
+          선택한 영상 분위기 <span className="font-medium text-ink">{selectedPresetLabel}</span>
         </div>
       ) : null}
+
+      <div className="grid gap-3 rounded-md border border-ink/10 bg-[#fbfcfb] p-4">
+        <div>
+          <p className="text-sm font-semibold text-ink">자막 분위기</p>
+          <p className="mt-1 text-xs leading-5 text-ink/45">영상 전체에 공통으로 적용되는 자막 톤이에요.</p>
+        </div>
+        <div className="grid gap-3 md:grid-cols-3">
+          {subtitleStyleOptions.map((option) => {
+            const isActive = option.id === selectedStyle;
+
+            return (
+              <button
+                className={`rounded-md border px-4 py-4 text-left transition ${
+                  isActive
+                    ? "border-ink bg-ink text-white shadow-[0_18px_38px_rgba(36,36,36,0.12)]"
+                    : "border-ink/10 bg-white text-ink hover:border-ink/25"
+                }`}
+                key={option.id}
+                onClick={() => onApplyStyle(option.id)}
+                type="button"
+              >
+                <p className="text-sm font-semibold">{option.label}</p>
+                <p className={`mt-2 text-xs leading-5 ${isActive ? "text-white/75" : "text-ink/45"}`}>
+                  {option.description}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="grid gap-4 rounded-md border border-ink/10 bg-[#fcfbf9] p-4">
+        <div>
+          <p className="text-sm font-semibold text-ink">자막 세부 설정</p>
+          <p className="mt-1 text-xs leading-5 text-ink/45">
+            색상, 위치, 크기를 조절하면 영상에 보이는 인상이 바로 달라져요.
+          </p>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className="grid gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink/45">색상</p>
+            <div className="flex flex-wrap gap-2">
+              {subtitleColorThemeOptions.map((option) => (
+                <button
+                  aria-pressed={subtitleAppearance.colorTheme === option.id}
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm transition ${
+                    subtitleAppearance.colorTheme === option.id
+                      ? "border-ink bg-ink text-white"
+                      : "border-ink/10 bg-white text-ink hover:border-ink/25"
+                  }`}
+                  key={option.id}
+                  onClick={() => onUpdateSubtitleAppearance({ colorTheme: option.id })}
+                  type="button"
+                >
+                  <span
+                    className="h-4 w-4 rounded-full border border-white/50"
+                    style={{ background: option.preview }}
+                  />
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink/45">위치</p>
+            <div className="flex flex-wrap gap-2">
+              {subtitlePositionOptions.map((option) => (
+                <button
+                  aria-pressed={subtitleAppearance.position === option.id}
+                  className={`rounded-full border px-3 py-2 text-sm transition ${
+                    subtitleAppearance.position === option.id
+                      ? "border-ink bg-ink text-white"
+                      : "border-ink/10 bg-white text-ink hover:border-ink/25"
+                  }`}
+                  key={option.id}
+                  onClick={() => onUpdateSubtitleAppearance({ position: option.id })}
+                  type="button"
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink/45">크기</p>
+            <div className="flex flex-wrap gap-2">
+              {subtitleSizeOptions.map((option) => (
+                <button
+                  aria-pressed={subtitleAppearance.size === option.id}
+                  className={`rounded-full border px-3 py-2 text-sm transition ${
+                    subtitleAppearance.size === option.id
+                      ? "border-ink bg-ink text-white"
+                      : "border-ink/10 bg-white text-ink hover:border-ink/25"
+                  }`}
+                  key={option.id}
+                  onClick={() => onUpdateSubtitleAppearance({ size: option.id })}
+                  type="button"
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-md border border-dashed border-ink/15 bg-white px-4 py-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink/45">빠르게 바꾸기</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {placeholderTokens.map((token) => (
+            <span className="rounded-full bg-porcelain px-3 py-1 text-xs text-ink/60" key={token.value}>
+              {token.label}: <span className="font-medium text-ink">{token.value}</span>
+            </span>
+          ))}
+        </div>
+      </div>
 
       <div className="grid gap-3">
         {lyricSegments.map((segment, index) => (
           <article
-            className="grid gap-3 rounded-md border border-ink/10 bg-porcelain/70 p-3 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_110px_110px_72px] xl:items-end"
+            className="grid gap-4 rounded-md border border-ink/10 bg-porcelain/70 p-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1.1fr)_110px_110px_82px] xl:items-end"
             key={segment.id}
           >
-            <label className="grid gap-2 text-sm font-medium text-ink">
-              문구 {index + 1}
-              <input
-                className="rounded-md border border-ink/15 px-3 py-2"
-                onChange={(event) =>
-                  onUpdateLyric(segment.id, {
-                    text: event.target.value
-                  })
-                }
-                placeholder="우리의 시작을 함께 축복해 주세요"
-                value={segment.text}
-              />
-            </label>
-            <label className="grid gap-2 text-sm font-medium text-ink">
-              번역 문구(선택)
-              <input
-                className="rounded-md border border-ink/15 px-3 py-2"
-                onChange={(event) =>
-                  onUpdateLyric(segment.id, {
-                    translation: event.target.value
-                  })
-                }
-                placeholder="영문 문구의 한국어 번역"
-                value={segment.translation ?? ""}
-              />
-            </label>
+            <div className="grid gap-3">
+              <label className="grid gap-2 text-sm font-medium text-ink">
+                문구 {index + 1}
+                <input
+                  className="rounded-md border border-ink/15 bg-white px-3 py-2"
+                  onChange={(event) =>
+                    onUpdateLyric(segment.id, {
+                      text: event.target.value
+                    })
+                  }
+                  placeholder="예: 오늘, 두 사람의 설렘이 시작돼요"
+                  value={segment.text}
+                />
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {placeholderTokens.map((token) => (
+                  <button
+                    className="rounded-full border border-ink/10 bg-white px-3 py-1 text-xs text-ink/60 transition hover:border-ink/25 hover:text-ink"
+                    key={`${segment.id}-${token.value}`}
+                    onClick={() =>
+                      onUpdateLyric(segment.id, {
+                        text: segment.text.includes(token.value)
+                          ? segment.text
+                          : `${segment.text}${segment.text.trim() ? " " : ""}${token.value}`
+                      })
+                    }
+                    type="button"
+                  >
+                    {token.label}
+                  </button>
+                ))}
+              </div>
+              <div className="rounded-md bg-white/75 px-3 py-2 text-xs leading-5 text-ink/55">
+                미리 적용되면 이렇게 보여요:
+                <p className="mt-1 font-medium text-ink">
+                  {resolveLyricTemplate(segment.text || "문구를 입력해주세요", project)}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-3">
+              <label className="grid gap-2 text-sm font-medium text-ink">
+                번역 문구(선택)
+                <input
+                  className="rounded-md border border-ink/15 bg-white px-3 py-2"
+                  onChange={(event) =>
+                    onUpdateLyric(segment.id, {
+                      translation: event.target.value
+                    })
+                  }
+                  placeholder="영문 자막 아래에 함께 보여줄 문구"
+                  value={segment.translation ?? ""}
+                />
+              </label>
+              <div className="rounded-md bg-white/75 px-3 py-2 text-xs leading-5 text-ink/55">
+                {segment.translation?.trim()
+                  ? `번역 미리보기: ${resolveLyricTemplate(segment.translation, project)}`
+                  : "번역 문구는 선택이에요. 클래식한 2줄 자막에 잘 어울려요."}
+              </div>
+            </div>
+
             <label className="grid gap-2 text-sm font-medium text-ink">
               시작(초)
               <input
-                className="rounded-md border border-ink/15 px-3 py-2"
+                className="rounded-md border border-ink/15 bg-white px-3 py-2"
                 min={0}
                 onChange={(event) =>
                   onUpdateLyric(segment.id, {
@@ -940,10 +1122,11 @@ function LyricsStep({
                 value={Number((segment.startMs / 1000).toFixed(1))}
               />
             </label>
+
             <label className="grid gap-2 text-sm font-medium text-ink">
               종료(초)
               <input
-                className="rounded-md border border-ink/15 px-3 py-2"
+                className="rounded-md border border-ink/15 bg-white px-3 py-2"
                 min={0.1}
                 onChange={(event) =>
                   onUpdateLyric(segment.id, {
@@ -955,6 +1138,7 @@ function LyricsStep({
                 value={Number((segment.endMs / 1000).toFixed(1))}
               />
             </label>
+
             <button
               className="rounded-md border border-rose/40 px-3 py-2 text-sm text-rose"
               onClick={() => onRemoveLyric(segment.id)}
@@ -1001,7 +1185,9 @@ function StepNavigation({
         이전 단계
       </button>
       <div className="text-sm text-ink/55">
-        {currentStepReady ? "이 단계는 준비됐어요." : "필수 내용을 채우면 다음 단계로 이동할 수 있어요."}
+        {currentStepReady
+          ? "이 단계는 준비가 끝났어요."
+          : "필수 내용을 채우면 다음 단계로 자연스럽게 넘어갈 수 있어요."}
       </div>
       <button
         className="rounded-md bg-ink px-4 py-3 text-sm font-medium text-white disabled:opacity-45"
@@ -1023,6 +1209,10 @@ function VideoSummaryPanel({
   requiredPhotoCount,
   selectedPreset,
   state,
+  subtitleAppearance,
+  subtitlePreviewText,
+  subtitlePreviewTranslation,
+  subtitleStyle,
   totalStepCount
 }: {
   activeImage?: EditorImageAsset;
@@ -1032,17 +1222,22 @@ function VideoSummaryPanel({
   requiredPhotoCount: number;
   selectedPreset?: (typeof videoMusicPresets)[number];
   state: VideoEditorState;
+  subtitleAppearance: VideoEditorState["subtitleAppearance"];
+  subtitlePreviewText: string;
+  subtitlePreviewTranslation?: string;
+  subtitleStyle: VideoSubtitleStyleId;
   totalStepCount: number;
 }) {
   const readiness = Math.round((completedStepCount / totalStepCount) * 100);
-  const firstSubtitle = state.lyricSegments.find((segment) => segment.text.trim().length > 0);
+  const themeClasses = subtitleThemeClassMap[subtitleAppearance.colorTheme];
 
   return (
     <section className="overflow-hidden rounded-md border border-ink/10 bg-white shadow-sm">
       <div className="border-b border-ink/10 bg-[#f7f2ed] px-4 py-3">
         <p className="text-sm font-semibold text-ink">영상 미리보기</p>
-        <p className="mt-1 text-xs text-ink/55">선택한 구간이 이곳에 바로 반영됩니다.</p>
+        <p className="mt-1 text-xs text-ink/55">선택한 사진과 자막 분위기가 바로 반영돼요.</p>
       </div>
+
       <div className="p-4">
         <div className="relative aspect-video overflow-hidden rounded-md bg-[#efe9e2]">
           {activeImage ? (
@@ -1055,16 +1250,37 @@ function VideoSummaryPanel({
             />
           ) : (
             <div className="grid h-full place-items-center px-6 text-center text-sm text-ink/45">
-              노래를 선택하고 사진을 업로드하면 미리보기가 채워집니다.
+              노래를 고르고 사진을 올리면 여기에서 바로 영상 느낌을 확인할 수 있어요.
             </div>
           )}
+
           {activeImage ? <div className="absolute inset-0 bg-black/18" /> : null}
-          {firstSubtitle && activeImage ? (
-            <div className="absolute inset-x-6 bottom-6 rounded-md bg-white/82 px-4 py-3 text-center backdrop-blur">
-              <p className="text-sm font-semibold text-ink">{firstSubtitle.text}</p>
-              {firstSubtitle.translation ? (
-                <p className="mt-1 text-xs text-ink/55">{firstSubtitle.translation}</p>
-              ) : null}
+
+          {activeImage ? (
+            <div
+              className={`absolute inset-x-6 flex justify-center ${
+                subtitleAppearance.position === "center" ? "top-1/2 -translate-y-1/2" : "bottom-6"
+              }`}
+            >
+              <div
+                className={`w-full max-w-[85%] rounded-[22px] border px-5 py-4 text-center shadow-[0_18px_48px_rgba(0,0,0,0.18)] backdrop-blur-md ${themeClasses.panel} ${getSubtitleFontClass(subtitleStyle)}`}
+              >
+                <p className={`${getSubtitleSizeClass(subtitleAppearance.size)} ${themeClasses.text}`}>
+                  {subtitlePreviewText || "여기에 자막이 자연스럽게 보여요"}
+                </p>
+                {subtitlePreviewTranslation ? (
+                  <p
+                    className={`mt-2 ${getSubtitleTranslationSizeClass(subtitleAppearance.size)} ${themeClasses.translation}`}
+                  >
+                    {subtitlePreviewTranslation}
+                  </p>
+                ) : null}
+                <div className="mt-3 flex justify-center">
+                  <span className={`rounded-full px-3 py-1 text-[11px] font-medium ${themeClasses.badge}`}>
+                    {getSubtitleStyleLabel(subtitleStyle)} · {getSubtitlePositionLabel(subtitleAppearance.position)}
+                  </span>
+                </div>
+              </div>
             </div>
           ) : null}
         </div>
@@ -1094,6 +1310,21 @@ function VideoSummaryPanel({
           </div>
         </dl>
 
+        <div className="mt-5 rounded-md border border-ink/10 bg-[#fcfbf9] p-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink/45">자막 스타일 요약</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="rounded-full bg-porcelain px-3 py-1 text-xs text-ink/60">
+              분위기: <span className="font-medium text-ink">{getSubtitleStyleLabel(subtitleStyle)}</span>
+            </span>
+            <span className="rounded-full bg-porcelain px-3 py-1 text-xs text-ink/60">
+              위치: <span className="font-medium text-ink">{getSubtitlePositionLabel(subtitleAppearance.position)}</span>
+            </span>
+            <span className="rounded-full bg-porcelain px-3 py-1 text-xs text-ink/60">
+              크기: <span className="font-medium text-ink">{getSubtitleSizeLabel(subtitleAppearance.size)}</span>
+            </span>
+          </div>
+        </div>
+
         <div className="mt-5">
           <div className="flex items-center justify-between text-xs text-ink/55">
             <span>준비 상태</span>
@@ -1106,6 +1337,63 @@ function VideoSummaryPanel({
       </div>
     </section>
   );
+}
+
+function getSubtitleFontClass(style: VideoSubtitleStyleId) {
+  switch (style) {
+    case "pop-classic":
+      return "font-serif tracking-[0.02em]";
+    case "kpop-deep":
+      return "font-medium";
+    default:
+      return "font-semibold";
+  }
+}
+
+function getSubtitleSizeClass(size: VideoSubtitleSizeId) {
+  switch (size) {
+    case "sm":
+      return "text-base md:text-lg";
+    case "lg":
+      return "text-2xl md:text-3xl";
+    default:
+      return "text-xl md:text-2xl";
+  }
+}
+
+function getSubtitleTranslationSizeClass(size: VideoSubtitleSizeId) {
+  switch (size) {
+    case "sm":
+      return "text-xs md:text-sm";
+    case "lg":
+      return "text-sm md:text-base";
+    default:
+      return "text-xs md:text-sm";
+  }
+}
+
+function getSubtitleStyleLabel(style: VideoSubtitleStyleId) {
+  return subtitleStyleOptions.find((option) => option.id === style)?.label ?? "기본 스타일";
+}
+
+function getSubtitlePositionLabel(position: VideoSubtitlePositionId) {
+  return subtitlePositionOptions.find((option) => option.id === position)?.label ?? "하단";
+}
+
+function getSubtitleSizeLabel(size: VideoSubtitleSizeId) {
+  return subtitleSizeOptions.find((option) => option.id === size)?.label ?? "기본";
+}
+
+function getEstimatedProductionTimeLabel(imageCount: number) {
+  if (imageCount >= 18) {
+    return "사진이 많은 편이라 영상 제작은 약 2~4분 정도 걸릴 수 있어요.";
+  }
+
+  if (imageCount >= 10) {
+    return "영상 제작은 약 1~3분 정도 소요돼요.";
+  }
+
+  return "짧은 영상은 보통 1~2분 안에 제작돼요.";
 }
 
 function getSceneStartMs(scenes: VideoEditorState["scenes"], index: number) {

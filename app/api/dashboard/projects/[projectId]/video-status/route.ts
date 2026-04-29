@@ -24,9 +24,14 @@ export async function GET(_: Request, context: RouteContext) {
       jobs: jobs.map((job) => normalizeVideoRenderJobItem(job))
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "영상 제작 상태를 불러오는 중 문제가 발생했습니다.";
-
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "영상 제작 상태를 불러오는 중 문제가 발생했습니다."
+      },
+      { status: 500 }
+    );
   }
 }

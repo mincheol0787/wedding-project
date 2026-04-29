@@ -30,10 +30,8 @@ export function VideoProductionWorkspace({
   const [jobs, setJobs] = useState(initialJobs);
   const [statusError, setStatusError] = useState<string>();
   const pollTimeoutRef = useRef<number | null>(null);
-  const hasActiveJob = useMemo(
-    () => jobs.some((job) => activeStatuses.has(job.status)),
-    [jobs]
-  );
+
+  const hasActiveJob = useMemo(() => jobs.some((job) => activeStatuses.has(job.status)), [jobs]);
 
   const refreshJobs = useCallback(
     async (silent = false) => {
@@ -54,7 +52,6 @@ export function VideoProductionWorkspace({
           if (!silent) {
             setStatusError(json.error ?? "영상 제작 상태를 확인하는 중 문제가 발생했습니다.");
           }
-
           return;
         }
 
@@ -64,7 +61,7 @@ export function VideoProductionWorkspace({
         if (!silent) {
           setStatusError(
             error instanceof Error && error.name === "AbortError"
-              ? "상태 확인이 잠시 지연되고 있어요. 잠시 후 다시 확인해 주세요."
+              ? "상태 확인이 잠시 지연되고 있어요. 잠시 후 다시 확인해주세요."
               : "영상 제작 상태를 새로 불러오지 못했습니다."
           );
         }
@@ -104,12 +101,10 @@ export function VideoProductionWorkspace({
       <section className="mt-8 grid gap-4 rounded-md border border-ink/10 bg-white/70 p-5">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">
-              Production Status
-            </p>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Production Status</p>
             <h2 className="mt-2 text-2xl font-semibold text-ink">영상 제작 상태</h2>
             <p className="mt-2 text-sm leading-6 text-ink/60">
-              제작이 시작되면 여기에서 진행률과 완료 여부를 바로 확인할 수 있어요.
+              영상 제작을 시작하면 여기에서 준비 중, 제작 중, 완료, 실패 상태를 자동으로 확인할 수 있어요.
             </p>
           </div>
           <button
@@ -120,6 +115,7 @@ export function VideoProductionWorkspace({
             상태 새로고침
           </button>
         </div>
+
         <RenderJobList
           jobs={jobs}
           onJobsChanged={() => refreshJobs(false)}
