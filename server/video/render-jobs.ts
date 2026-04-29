@@ -172,3 +172,20 @@ export async function getRenderJobsForProject(userId: string, weddingProjectId: 
     }
   });
 }
+
+export async function getQueuedRenderJobsForWorker(limit = 50) {
+  return prisma.renderJob.findMany({
+    where: {
+      status: "QUEUED",
+      deletedAt: null,
+      queueJobId: null
+    },
+    orderBy: {
+      createdAt: "asc"
+    },
+    take: limit,
+    select: {
+      id: true
+    }
+  });
+}

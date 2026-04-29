@@ -121,7 +121,7 @@ export function RenderRequestPanel({
 
               setMessage(
                 result.message ??
-                  "영상 제작이 시작되었습니다. 완료되면 서비스 내 상태 화면에서 바로 확인할 수 있어요."
+                  "영상 제작이 접수되었습니다. 화면을 닫아도 제작 상태에서 진행 상황을 확인할 수 있어요."
               );
               onRequested?.();
             } catch (requestError) {
@@ -135,7 +135,7 @@ export function RenderRequestPanel({
         }}
         type="button"
       >
-        {pending ? "영상 제작을 시작하고 있어요..." : "영상 제작 시작하기"}
+        {pending ? "요청을 접수하고 있어요..." : "영상 제작 시작하기"}
       </button>
 
       {!requiredReady ? (

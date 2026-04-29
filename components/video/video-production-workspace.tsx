@@ -104,7 +104,7 @@ export function VideoProductionWorkspace({
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-rose">Production Status</p>
             <h2 className="mt-2 text-2xl font-semibold text-ink">영상 제작 상태</h2>
             <p className="mt-2 text-sm leading-6 text-ink/60">
-              영상 제작을 시작하면 여기에서 준비 중, 제작 중, 완료, 실패 상태를 자동으로 확인할 수 있어요.
+              영상 제작을 요청하면 여기에서 대기 중, 제작 중, 완료, 실패 상태를 자동으로 확인할 수 있어요.
             </p>
           </div>
           <button

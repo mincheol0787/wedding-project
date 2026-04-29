@@ -19,7 +19,7 @@ const statusLabel: Record<string, string> = {
   CANCELED: "제작 취소됨",
   FAILED: "제작 실패",
   PROCESSING: "영상 제작 중",
-  QUEUED: "제작 준비 중",
+  QUEUED: "제작 대기 중",
   SUCCEEDED: "제작 완료"
 };
 
@@ -27,7 +27,7 @@ const statusHelp: Record<string, string> = {
   CANCELED: "사용자가 제작을 멈춘 상태예요. 필요하면 다시 시작할 수 있어요.",
   FAILED: "제작 중 문제가 생겼어요. 내용을 확인한 뒤 다시 시도해주세요.",
   PROCESSING: "사진과 자막을 엮어서 영상을 만들고 있어요.",
-  QUEUED: "제작 순서를 기다리는 중이에요. 잠시만 기다려주세요.",
+  QUEUED: "영상 제작 요청이 접수됐어요. 제작 작업자가 순서대로 이어서 처리합니다.",
   SUCCEEDED: "완성된 영상을 바로 확인할 수 있어요."
 };
 

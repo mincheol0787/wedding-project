@@ -78,7 +78,7 @@ export async function requestRenderAction(
       };
     }
 
-    await requestVideoRender({
+    const renderRequest = await requestVideoRender({
       userId: session.user.id,
       weddingProjectId: project.id,
       videoProjectId: project.videoProject.id,
@@ -88,7 +88,10 @@ export async function requestRenderAction(
     revalidateVideoPaths(projectId);
 
     return {
-      message: "영상 제작이 시작되었습니다. 완료되면 서비스 내 상태 화면에서 바로 확인할 수 있어요."
+      message:
+        renderRequest.enqueueStatus === "queued"
+          ? "영상 제작이 접수되었습니다. 화면을 닫아도 제작 상태에서 진행 상황을 확인할 수 있어요."
+          : "영상 제작 요청이 저장되었습니다. 제작 작업자가 준비되는 대로 자동으로 이어서 진행됩니다."
     };
   } catch (error) {
     return {
@@ -199,7 +202,7 @@ export async function retryRenderJobAction(
       };
     }
 
-    await requestVideoRender({
+    const renderRequest = await requestVideoRender({
       userId: session.user.id,
       weddingProjectId: renderJob.weddingProjectId,
       videoProjectId: renderJob.videoProjectId,
@@ -209,7 +212,10 @@ export async function retryRenderJobAction(
     revalidateVideoPaths(projectId);
 
     return {
-      message: "영상 제작을 다시 시작했어요."
+      message:
+        renderRequest.enqueueStatus === "queued"
+          ? "영상 제작을 다시 접수했어요. 제작 상태에서 진행 상황을 확인할 수 있어요."
+          : "다시 만들기 요청이 저장되었습니다. 제작 작업자가 준비되는 대로 자동으로 이어서 진행됩니다."
     };
   } catch (error) {
     return {

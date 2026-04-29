@@ -9,7 +9,7 @@ const envSchema = z.object({
   APP_PUBLIC_URL: z.string().url().optional(),
   VERCEL_PROJECT_PRODUCTION_URL: z.string().optional(),
   VERCEL_URL: z.string().optional(),
-  REDIS_URL: z.string().default("redis://localhost:6379"),
+  REDIS_URL: z.string().min(1).optional(),
   KAKAO_REST_API_KEY: z.string().optional(),
   NEXT_PUBLIC_KAKAO_MAP_APP_KEY: z.string().optional(),
   S3_ENDPOINT: z.string().optional(),
