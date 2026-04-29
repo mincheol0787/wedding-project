@@ -16,6 +16,7 @@ export type EditorImageAsset = {
   id: string;
   fileName: string;
   previewUrl: string;
+  renderUrl?: string;
   alt?: string;
 };
 
@@ -23,6 +24,7 @@ export type EditorAudioAsset = {
   id: string;
   fileName: string;
   previewUrl: string;
+  renderUrl?: string;
   volume: number;
 };
 
@@ -379,14 +381,14 @@ export function buildVideoRenderInput(state: VideoEditorState): VideoRenderInput
     assets: {
       images: state.images.map((image) => ({
         id: image.id,
-        src: image.previewUrl,
+        src: image.renderUrl ?? image.previewUrl,
         fileName: image.fileName,
         alt: image.alt
       })),
       audio: state.audio
         ? {
             id: state.audio.id,
-            src: state.audio.previewUrl,
+            src: state.audio.renderUrl ?? state.audio.previewUrl,
             fileName: state.audio.fileName,
             volume: state.audio.volume
           }

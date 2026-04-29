@@ -245,15 +245,31 @@ function createSampleImageDataUri(title: string, accent: string) {
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
       <defs>
-        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0%" stop-color="#f8f6f2"/>
-          <stop offset="100%" stop-color="${accent}"/>
-        </linearGradient>
+        <radialGradient id="bg" cx="46%" cy="38%" r="78%">
+          <stop offset="0%" stop-color="#fff7ef" stop-opacity="0.9"/>
+          <stop offset="46%" stop-color="${accent}" stop-opacity="0.48"/>
+          <stop offset="100%" stop-color="#181513" stop-opacity="1"/>
+        </radialGradient>
+        <filter id="grain">
+          <feTurbulence type="fractalNoise" baseFrequency="0.64" numOctaves="4" stitchTiles="stitch"/>
+          <feColorMatrix type="saturate" values="0"/>
+          <feComponentTransfer>
+            <feFuncA type="table" tableValues="0 0.13"/>
+          </feComponentTransfer>
+        </filter>
       </defs>
       <rect width="1920" height="1080" fill="url(#bg)"/>
-      <rect x="120" y="120" width="1680" height="840" rx="24" fill="rgba(255,255,255,0.36)" stroke="rgba(255,255,255,0.68)" stroke-width="2"/>
-      <circle cx="960" cy="500" r="180" fill="rgba(255,255,255,0.38)"/>
-      <text x="960" y="765" fill="#242424" font-family="Georgia, serif" font-size="72" text-anchor="middle">${title}</text>
+      <rect width="1920" height="1080" filter="url(#grain)" opacity="0.45"/>
+      <path d="M250 914 C512 584 650 274 1000 214 C1300 164 1542 298 1698 488" fill="none" stroke="#fff7ef" stroke-opacity="0.23" stroke-width="2"/>
+      <path d="M464 858 C640 612 818 474 1062 430 C1250 396 1424 448 1550 548" fill="none" stroke="${accent}" stroke-opacity="0.38" stroke-width="3"/>
+      <g opacity="0.9">
+        <ellipse cx="842" cy="548" rx="126" ry="178" fill="#191716" opacity="0.52"/>
+        <ellipse cx="1018" cy="552" rx="132" ry="184" fill="#221a1a" opacity="0.58"/>
+        <path d="M724 756 C824 596 934 586 1038 756 Z" fill="#fff7ef" opacity="0.68"/>
+        <path d="M962 756 C1058 590 1218 604 1300 756 Z" fill="#151313" opacity="0.68"/>
+      </g>
+      <rect x="164" y="124" width="1592" height="832" rx="28" fill="none" stroke="#ffffff" stroke-opacity="0.18" stroke-width="2"/>
+      <text x="960" y="858" fill="#fff7ef" fill-opacity="0.92" font-family="Georgia, serif" font-size="62" text-anchor="middle">${title}</text>
     </svg>
   `;
 

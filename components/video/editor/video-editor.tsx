@@ -186,7 +186,7 @@ export function VideoEditor({ projectId, project, onRenderRequested }: VideoEdit
     };
   }, []);
 
-  function createImageAsset(file: File): EditorImageAsset {
+  async function createImageAsset(file: File): Promise<EditorImageAsset> {
     const previewUrl = URL.createObjectURL(file);
     objectUrlsRef.current.push(previewUrl);
 
@@ -194,18 +194,18 @@ export function VideoEditor({ projectId, project, onRenderRequested }: VideoEdit
       id: createId("image"),
       fileName: file.name,
       previewUrl,
+      renderUrl: await readFileAsDataUrl(file),
       alt: file.name
     };
   }
 
-  function handleImageUpload(files: FileList | File[] | null) {
+  async function handleImageUpload(files: FileList | File[] | null) {
     if (!files?.length) {
       return;
     }
 
-    const images = Array.from(files)
-      .filter((file) => file.type.startsWith("image/"))
-      .map((file) => createImageAsset(file));
+    const imageFiles = Array.from(files).filter((file) => file.type.startsWith("image/"));
+    const images = await Promise.all(imageFiles.map((file) => createImageAsset(file)));
 
     if (!images.length) {
       return;
@@ -219,16 +219,16 @@ export function VideoEditor({ projectId, project, onRenderRequested }: VideoEdit
   }
 
   function handleImageInputChange(event: ChangeEvent<HTMLInputElement>) {
-    handleImageUpload(event.target.files);
+    void handleImageUpload(event.target.files);
     event.target.value = "";
   }
 
   function handleDrop(event: DragEvent<HTMLLabelElement>) {
     event.preventDefault();
-    handleImageUpload(event.dataTransfer.files);
+    void handleImageUpload(event.dataTransfer.files);
   }
 
-  function handleSceneImageReplace(imageAssetId: string, files: FileList | null) {
+  async function handleSceneImageReplace(imageAssetId: string, files: FileList | null) {
     const file = files?.[0];
 
     if (!file || !file.type.startsWith("image/")) {
@@ -237,12 +237,12 @@ export function VideoEditor({ projectId, project, onRenderRequested }: VideoEdit
 
     dispatch({
       type: "replace-image",
-      image: createImageAsset(file),
+      image: await createImageAsset(file),
       imageAssetId
     });
   }
 
-  function handleAudioUpload(files: FileList | null) {
+  async function handleAudioUpload(files: FileList | null) {
     const file = files?.[0];
 
     if (!file || !file.type.startsWith("audio/")) {
@@ -256,6 +256,7 @@ export function VideoEditor({ projectId, project, onRenderRequested }: VideoEdit
       id: createId("audio"),
       fileName: file.name,
       previewUrl,
+      renderUrl: await readFileAsDataUrl(file),
       volume: 0.8
     };
 
@@ -1406,4 +1407,21 @@ function formatTime(ms: number) {
   const seconds = totalSeconds % 60;
 
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
+function readFileAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.addEventListener("load", () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+        return;
+      }
+
+      reject(new Error("Unable to read file."));
+    });
+    reader.addEventListener("error", () => reject(reader.error ?? new Error("Unable to read file.")));
+    reader.readAsDataURL(file);
+  });
 }
