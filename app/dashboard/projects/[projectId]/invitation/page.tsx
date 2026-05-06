@@ -2,8 +2,12 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { InvitationEditor } from "@/components/invitation/editor/invitation-editor";
+import { InvitationResponseCenter } from "@/components/invitation/editor/invitation-response-center";
 import { env } from "@/lib/env";
-import { getInvitationEditorProject } from "@/server/invitations/service";
+import {
+  getInvitationEditorProject,
+  getInvitationResponseDashboard
+} from "@/server/invitations/service";
 
 type InvitationEditorPageProps = {
   params: Promise<{
@@ -26,6 +30,7 @@ export default async function InvitationEditorPage({ params }: InvitationEditorP
   }
 
   const invitation = project.invitationProject;
+  const responseDashboard = await getInvitationResponseDashboard(session.user.id, projectId);
   const publicUrl = invitation.status === "PUBLISHED" ? `${env.APP_PUBLIC_URL}/i/${invitation.publicSlug}` : null;
   const previewUrl = `/dashboard/projects/${project.id}/invitation/preview`;
 
@@ -81,6 +86,10 @@ export default async function InvitationEditorPage({ params }: InvitationEditorP
           projectId={project.id}
           publicUrl={publicUrl}
         />
+
+        {responseDashboard ? (
+          <InvitationResponseCenter data={responseDashboard} projectId={project.id} />
+        ) : null}
       </section>
     </main>
   );
