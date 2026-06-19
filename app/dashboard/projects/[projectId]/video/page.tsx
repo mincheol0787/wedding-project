@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { normalizeVideoRenderJobItem } from "@/components/video/types";
 import { VideoProductionWorkspace } from "@/components/video/video-production-workspace";
+import { videoProductionFeature } from "@/lib/features";
 import { getWeddingProjectForVideoEditor } from "@/server/projects/service";
 import { getRenderJobsForProject } from "@/server/video/render-jobs";
 
@@ -24,6 +25,41 @@ export default async function VideoEditorPage({ params }: VideoEditorPageProps) 
 
   if (!project) {
     notFound();
+  }
+
+  if (!videoProductionFeature.enabled) {
+    return (
+      <main className="min-h-screen bg-porcelain px-6 py-10">
+        <section className="mx-auto max-w-4xl">
+          <Link className="text-sm font-medium text-ink/55" href={`/dashboard/projects/${project.id}`} prefetch>
+            내 작업으로 돌아가기
+          </Link>
+          <div className="mt-8 rounded-md border border-ink/10 bg-white p-8 shadow-sm">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-rose">Video Production Paused</p>
+            <h1 className="mt-4 text-4xl font-semibold text-ink">{videoProductionFeature.disabledTitle}</h1>
+            <p className="mt-4 max-w-2xl text-base leading-8 text-ink/65">
+              {videoProductionFeature.disabledMessage}
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link
+                className="rounded-md bg-ink px-5 py-3 text-sm font-medium text-white"
+                href={`/dashboard/projects/${project.id}/invitation`}
+                prefetch
+              >
+                청첩장 수정하기
+              </Link>
+              <Link
+                className="rounded-md border border-ink/15 px-5 py-3 text-sm font-medium text-ink"
+                href={`/dashboard/projects/${project.id}`}
+                prefetch
+              >
+                작업 관리로 이동
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
+    );
   }
 
   const renderJobs = await getRenderJobsForProject(session.user.id, project.id);

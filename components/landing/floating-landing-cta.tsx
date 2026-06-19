@@ -38,7 +38,7 @@ export function FloatingLandingCta({ isAuthenticated }: FloatingLandingCtaProps)
           <p className="mt-1 text-sm font-medium text-ink">
             {isAuthenticated
               ? "진행 중인 작업이 있습니다. 이어서 편집해보세요."
-              : "청첩장과 식전영상을 한 번에 준비해보세요."}
+              : "모바일 청첩장을 빠르게 만들고 예식 준비를 정리해보세요."}
           </p>
         </div>
         <Link

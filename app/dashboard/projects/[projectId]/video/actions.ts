@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { auth } from "@/auth";
+import { videoProductionFeature } from "@/lib/features";
 import { prisma } from "@/lib/prisma";
 import { videoRenderInputSchema, type VideoRenderInput } from "@/lib/video/render-input";
 import {
@@ -32,6 +33,12 @@ export async function requestRenderAction(
   input: VideoRenderInput
 ): Promise<RenderRequestState> {
   try {
+    if (!videoProductionFeature.enabled) {
+      return {
+        error: "식전영상 제작은 품질 재정비 중이라 현재 요청할 수 없습니다. 청첩장 기능 안정성을 우선해 서버 렌더링을 잠시 막아두었습니다."
+      };
+    }
+
     const session = await auth();
 
     if (!session?.user?.id) {
@@ -178,6 +185,12 @@ export async function retryRenderJobAction(
   formData: FormData
 ): Promise<RenderJobMutationState> {
   try {
+    if (!videoProductionFeature.enabled) {
+      return {
+        error: "식전영상 제작은 품질 재정비 중이라 다시 만들기를 진행할 수 없습니다."
+      };
+    }
+
     const session = await auth();
 
     if (!session?.user?.id) {

@@ -1,52 +1,104 @@
 import { Worker } from "bullmq";
-import { renderConnection, renderQueue } from "./queues";
-import { executeRenderJob } from "@/server/video/render-executor";
-import {
-  attachQueueJob,
-  getQueuedRenderJobsForWorker,
-  markRenderJobFailed
-} from "@/server/video/render-jobs";
-import {
-  getRenderQueueJobId,
-  RENDER_QUEUE_JOB_NAME,
-  RENDER_QUEUE_NAME,
-  renderQueueJobOptions
-} from "@/server/video/render-queue";
+import { videoProductionFeature } from "@/lib/features";
 
-void hydratePendingRenderJobs();
+type RenderQueueJobOptions = {
+  attempts: number;
+  backoff: {
+    delay: number;
+    type: "exponential";
+  };
+  jobId?: string;
+  removeOnComplete: {
+    age: number;
+    count: number;
+  };
+  removeOnFail: {
+    age: number;
+    count: number;
+  };
+};
 
-new Worker(
-  RENDER_QUEUE_NAME,
-  async (job) => {
-    const renderJobId = job.data.renderJobId as string | undefined;
+if (!videoProductionFeature.enabled) {
+  console.log("[video-render] Worker is disabled while video production quality is being rebuilt.");
+} else {
+  void startRenderWorker();
+}
 
-    if (!renderJobId) {
-      throw new Error("renderJobId is required");
-    }
+async function startRenderWorker() {
+  const [
+    { renderConnection, renderQueue },
+    { executeRenderJob },
+    { attachQueueJob, getQueuedRenderJobsForWorker, markRenderJobFailed },
+    { getRenderQueueJobId, RENDER_QUEUE_JOB_NAME, RENDER_QUEUE_NAME, renderQueueJobOptions }
+  ] = await Promise.all([
+    import("./queues"),
+    import("@/server/video/render-executor"),
+    import("@/server/video/render-jobs"),
+    import("@/server/video/render-queue")
+  ]);
 
-    try {
-      await executeRenderJob(renderJobId, job.attemptsMade + 1);
-      return {
-        ok: true,
-        renderJobId
-      };
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown render error";
+  await hydratePendingRenderJobs({
+    attachQueueJob,
+    getQueuedRenderJobsForWorker,
+    getRenderQueueJobId,
+    renderQueue,
+    RENDER_QUEUE_JOB_NAME,
+    renderQueueJobOptions
+  });
 
-      if (job.attemptsMade + 1 >= (job.opts.attempts ?? 1)) {
-        await markRenderJobFailed(renderJobId, message, job.attemptsMade + 1);
+  new Worker(
+    RENDER_QUEUE_NAME,
+    async (job) => {
+      const renderJobId = job.data.renderJobId as string | undefined;
+
+      if (!renderJobId) {
+        throw new Error("renderJobId is required");
       }
 
-      throw error;
-    }
-  },
-  {
-    connection: renderConnection,
-    concurrency: 1
-  }
-);
+      try {
+        await executeRenderJob(renderJobId, job.attemptsMade + 1);
+        return {
+          ok: true,
+          renderJobId
+        };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Unknown render error";
 
-async function hydratePendingRenderJobs() {
+        if (job.attemptsMade + 1 >= (job.opts.attempts ?? 1)) {
+          await markRenderJobFailed(renderJobId, message, job.attemptsMade + 1);
+        }
+
+        throw error;
+      }
+    },
+    {
+      connection: renderConnection,
+      concurrency: 1
+    }
+  );
+}
+
+async function hydratePendingRenderJobs({
+  attachQueueJob,
+  getQueuedRenderJobsForWorker,
+  getRenderQueueJobId,
+  renderQueue,
+  RENDER_QUEUE_JOB_NAME,
+  renderQueueJobOptions
+}: {
+  attachQueueJob: (renderJobId: string, queueJobId: string) => Promise<unknown>;
+  getQueuedRenderJobsForWorker: () => Promise<Array<{ id: string }>>;
+  getRenderQueueJobId: (renderJobId: string) => string;
+  renderQueue: {
+    add: (
+      name: string,
+      data: { renderJobId: string },
+      options: RenderQueueJobOptions
+    ) => Promise<{ id?: string }>;
+  };
+  RENDER_QUEUE_JOB_NAME: string;
+  renderQueueJobOptions: RenderQueueJobOptions;
+}) {
   const pendingJobs = await getQueuedRenderJobsForWorker();
 
   for (const pendingJob of pendingJobs) {

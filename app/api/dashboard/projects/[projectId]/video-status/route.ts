@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { normalizeVideoRenderJobItem } from "@/components/video/types";
+import { videoProductionFeature } from "@/lib/features";
 import { getRenderJobsForProject } from "@/server/video/render-jobs";
 
 type RouteContext = {
@@ -11,6 +12,13 @@ type RouteContext = {
 
 export async function GET(_: Request, context: RouteContext) {
   try {
+    if (!videoProductionFeature.enabled) {
+      return NextResponse.json({
+        jobs: [],
+        message: "식전영상 제작은 품질 재정비 중입니다."
+      });
+    }
+
     const session = await auth();
 
     if (!session?.user?.id) {

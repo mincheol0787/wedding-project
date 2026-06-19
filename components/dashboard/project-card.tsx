@@ -1,4 +1,5 @@
 import { FastLink } from "@/components/ui/fast-link";
+import { videoProductionFeature } from "@/lib/features";
 
 type ProjectStatus = "DRAFT" | "ACTIVE" | "ARCHIVED" | "DELETED";
 type InvitationStatus = "DRAFT" | "PUBLISHED" | "UNPUBLISHED" | "ARCHIVED";
@@ -95,8 +96,10 @@ export function ProjectCard({
           <dd className="mt-1 font-medium text-ink">{mediaCount}개</dd>
         </div>
         <div>
-          <dt className="text-ink/45">영상 제작</dt>
-          <dd className="mt-1 font-medium text-ink">{renderJobCount}건</dd>
+          <dt className="text-ink/45">제작 상태</dt>
+          <dd className="mt-1 font-medium text-ink">
+            {videoProductionFeature.enabled ? `영상 ${renderJobCount}건` : "청첩장 중심"}
+          </dd>
         </div>
       </dl>
 
@@ -122,15 +125,17 @@ export function ProjectCard({
         >
           {invitation?.status === "PUBLISHED" ? "공개 페이지" : "청첩장 미리보기"}
         </FastLink>
-        <FastLink
-          className="rounded-md border border-ink/15 px-4 py-2 text-sm font-medium text-ink"
-          href={`/dashboard/projects/${id}/video`}
-        >
-          영상 만들기
-        </FastLink>
+        {videoProductionFeature.enabled ? (
+          <FastLink
+            className="rounded-md border border-ink/15 px-4 py-2 text-sm font-medium text-ink"
+            href={`/dashboard/projects/${id}/video`}
+          >
+            영상 만들기
+          </FastLink>
+        ) : null}
       </div>
 
-      {latestRenderJob ? (
+      {videoProductionFeature.enabled && latestRenderJob ? (
         <div className="mt-5 rounded-md bg-porcelain p-3">
           <div className="flex items-center justify-between gap-3 text-sm">
             <span className="font-medium text-ink">

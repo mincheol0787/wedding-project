@@ -11,8 +11,8 @@ const features = [
     description: "템플릿, 섹션 순서, 지도, 참석 여부, 방명록까지 한 화면에서 정리합니다."
   },
   {
-    title: "식전영상",
-    description: "사진, 문구, 음악을 업로드하고 영상 제작 데이터로 자연스럽게 연결합니다."
+    title: "하객 응답 관리",
+    description: "참석 여부, 식사, 방명록, 연락처를 한곳에서 확인하고 정리합니다."
   },
   {
     title: "일정 관리",
@@ -21,9 +21,9 @@ const features = [
 ];
 
 const featureSteps = [
-  ["01", "작업 시작", "신랑, 신부, 예식일만 입력하면 청첩장과 영상 제작 화면이 열립니다."],
+  ["01", "작업 시작", "신랑, 신부, 예식일만 입력하면 청첩장 제작 화면이 열립니다."],
   ["02", "초대장 편집", "사진, 문구, 지도, 계좌, 섹션 순서를 원하는 흐름으로 맞춥니다."],
-  ["03", "영상 제작", "사진 슬라이드와 문구 타임라인을 구성하고 영상 제작 요청까지 이어집니다."]
+  ["03", "응답 관리", "참석 여부와 방명록을 확인하고 예식 준비 일정과 함께 관리합니다."]
 ];
 
 const reviews = [
@@ -31,7 +31,7 @@ const reviews = [
     initials: "SY",
     name: "서연 & 민수",
     rating: "5.0",
-    message: "청첩장과 식전영상 준비를 한 곳에서 끝낼 수 있어서 일정이 훨씬 정리됐어요."
+    message: "청첩장 수정과 참석 응답 확인을 한 곳에서 끝낼 수 있어서 일정이 훨씬 정리됐어요."
   },
   {
     initials: "HJ",
@@ -96,7 +96,7 @@ export default async function HomePage() {
                 a letter
               </h1>
               <p className="mt-6 max-w-2xl text-base leading-8 text-white/84 md:text-lg">
-                모바일 청첩장, 식전영상, 일정 관리를 한 흐름으로 연결해 예비부부의 준비 시간을 더 차분하게 만듭니다.
+                모바일 청첩장, 참석 응답, 일정 관리를 한 흐름으로 연결해 예비부부의 준비 시간을 더 차분하게 만듭니다.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
@@ -135,7 +135,7 @@ export default async function HomePage() {
                   화면은 단순해야 합니다
                 </h2>
                 <p className="mt-5 text-base leading-8 text-ink/66">
-                  MVP는 제작 흐름을 빠르게 만드는 데 집중합니다. 청첩장 정보, 사진, 지도, 참석 여부, 식전영상 데이터를 하나의 작업 흐름으로 묶어 관리합니다.
+                  MVP는 청첩장 제작과 예식 운영 흐름을 빠르게 만드는 데 집중합니다. 청첩장 정보, 사진, 지도, 참석 여부, 방명록 데이터를 하나의 작업 흐름으로 묶어 관리합니다.
                 </p>
               </div>
               <div className="grid gap-4 md:grid-cols-3" data-reveal>
@@ -277,7 +277,7 @@ export default async function HomePage() {
                 한 번에 이해하세요
               </h2>
               <p className="mt-5 text-base leading-8 text-ink/66">
-                실제 광고 영상이 연결되기 전까지는 제품 소개용 영상 영역으로 운영합니다. 추후 Vercel Blob 또는 S3에 업로드한 서비스 영상을 그대로 연결할 수 있습니다.
+                실제 광고 영상이 연결되기 전까지는 제품 소개용 영상 영역으로 운영합니다. 식전영상 제작 기능은 품질 기준을 다시 잡은 뒤 별도 기능으로 재오픈할 예정입니다.
               </p>
             </div>
             <div
@@ -317,7 +317,7 @@ export default async function HomePage() {
               더 많은 도구가 아니라 더 쉬운 흐름입니다
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-ink/66">
-              첫 작업을 만들고, 청첩장과 식전영상을 같은 데이터 위에서 이어서 준비해보세요.
+              첫 작업을 만들고, 청첩장과 참석 응답을 같은 데이터 위에서 이어서 준비해보세요.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link
@@ -347,7 +347,7 @@ export default async function HomePage() {
         <div className="mx-auto grid max-w-7xl gap-6 text-sm text-ink/58 md:grid-cols-[1fr_auto] md:items-center">
           <div>
             <p className="text-lg font-semibold text-ink">MC Page</p>
-            <p className="mt-2">모바일 청첩장과 식전영상을 함께 준비하는 웨딩 제작 SaaS</p>
+            <p className="mt-2">모바일 청첩장과 예식 준비를 함께 관리하는 웨딩 제작 SaaS</p>
           </div>
           <div className="flex flex-wrap gap-4">
             <Link href="/support">고객센터</Link>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type MouseEvent, type ReactNode } from "react";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { videoProductionFeature } from "@/lib/features";
 
 type AppTopNavProps = {
   currentProjectId?: string;
@@ -27,13 +28,20 @@ export function AppTopNav({ currentProjectId, isAdmin, userName }: AppTopNavProp
   const invitationHref = projectId
     ? `/dashboard/projects/${projectId}/invitation`
     : "/dashboard/projects/new";
-  const videoHref = projectId ? `/dashboard/projects/${projectId}/video` : "/dashboard/projects/new";
 
   const links: NavItem[] = [
     { href: "/", label: "홈" },
     { href: "/dashboard", label: "내 작업" },
     { href: invitationHref, label: "청첩장 만들기" },
-    { href: videoHref, label: "영상 만들기", isNew: true },
+    ...(videoProductionFeature.enabled
+      ? [
+          {
+            href: projectId ? `/dashboard/projects/${projectId}/video` : "/dashboard/projects/new",
+            label: "영상 만들기",
+            isNew: true
+          }
+        ]
+      : []),
     ...(isAdmin ? [{ href: "/admin", label: "관리자" }] : [])
   ];
 

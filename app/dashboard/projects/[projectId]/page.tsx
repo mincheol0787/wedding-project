@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { SchedulePanel } from "@/components/project/schedule-panel";
+import { videoProductionFeature } from "@/lib/features";
 import { getWeddingProjectDetail } from "@/server/projects/service";
 
 type ProjectDetailPageProps = {
@@ -34,7 +35,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
 
   const nextEvent = project.scheduleEvents.find((event) => !event.isCompleted) ?? null;
   const daysLeft = nextEvent ? getDaysDiff(nextEvent.startsAt) : null;
-  const latestVideoProduction = project.renderJobs[0] ?? null;
+  const latestVideoProduction = videoProductionFeature.enabled ? project.renderJobs[0] ?? null : null;
 
   return (
     <main className="min-h-screen bg-porcelain px-6 py-8">
@@ -104,14 +105,22 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                     <p className="mt-1 text-ink/55">{project.venueAddress}</p>
                   ) : null}
                 </div>
-                <div>
-                  <dt className="text-ink/45">최근 영상 제작</dt>
-                  <dd className="mt-1 font-medium text-ink">
-                    {latestVideoProduction
-                      ? `${videoProductionStatusLabel[latestVideoProduction.status] ?? latestVideoProduction.status} · ${latestVideoProduction.progress}%`
-                      : "아직 없음"}
-                  </dd>
-                </div>
+                {videoProductionFeature.enabled ? (
+                  <div>
+                    <dt className="text-ink/45">최근 영상 제작</dt>
+                    <dd className="mt-1 font-medium text-ink">
+                      {latestVideoProduction
+                        ? `${videoProductionStatusLabel[latestVideoProduction.status] ?? latestVideoProduction.status} · ${latestVideoProduction.progress}%`
+                        : "아직 없음"}
+                    </dd>
+                  </div>
+                ) : (
+                  <div>
+                    <dt className="text-ink/45">식전영상</dt>
+                    <dd className="mt-1 font-medium text-ink">품질 재정비 중</dd>
+                    <p className="mt-1 text-ink/55">청첩장 기능 안정성을 우선해 제작 요청을 잠시 막아두었습니다.</p>
+                  </div>
+                )}
               </dl>
 
               <div className="mt-6 grid gap-2">
@@ -122,13 +131,15 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                 >
                   모바일 청첩장 수정
                 </Link>
-                <Link
-                  className="rounded-md border border-ink/15 px-4 py-3 text-center text-sm font-medium text-ink"
-                  href={`/dashboard/projects/${project.id}/video`}
-                  prefetch
-                >
-                  식전영상 만들기
-                </Link>
+                {videoProductionFeature.enabled ? (
+                  <Link
+                    className="rounded-md border border-ink/15 px-4 py-3 text-center text-sm font-medium text-ink"
+                    href={`/dashboard/projects/${project.id}/video`}
+                    prefetch
+                  >
+                    식전영상 만들기
+                  </Link>
+                ) : null}
                 <Link
                   className="rounded-md border border-ink/15 px-4 py-3 text-center text-sm font-medium text-ink"
                   href={
