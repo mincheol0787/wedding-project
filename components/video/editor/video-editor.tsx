@@ -24,6 +24,7 @@ import {
 import {
   videoMusicPresets,
   type VideoMusicPresetId,
+  type VideoSceneRoleId,
   type VideoSubtitleColorThemeId,
   type VideoSubtitlePositionId,
   type VideoSubtitleSizeId,
@@ -42,6 +43,13 @@ type VideoStep = {
   description: string;
   id: VideoStepId;
   label: string;
+};
+
+type VideoQualityItem = {
+  done: boolean;
+  help: string;
+  label: string;
+  step: VideoStepId;
 };
 
 const videoSteps: VideoStep[] = [
@@ -116,6 +124,38 @@ const subtitleSizeOptions: Array<{
   { id: "lg", label: "크게" }
 ];
 
+const sceneRoleOptions: Array<{
+  id: VideoSceneRoleId;
+  label: string;
+  description: string;
+}> = [
+  {
+    id: "opening",
+    label: "오프닝",
+    description: "첫 장면에서 두 사람의 분위기를 잡아줘요."
+  },
+  {
+    id: "couple",
+    label: "두 사람",
+    description: "함께 있는 사진으로 몰입감을 만들어요."
+  },
+  {
+    id: "detail",
+    label: "디테일",
+    description: "손, 꽃, 반지, 공간처럼 감성 컷을 넣어요."
+  },
+  {
+    id: "family",
+    label: "가족/친구",
+    description: "하객이 더 따뜻하게 느끼는 관계 컷이에요."
+  },
+  {
+    id: "ending",
+    label: "엔딩",
+    description: "초대 문구나 마지막 인사에 어울리는 컷이에요."
+  }
+];
+
 const subtitleThemeClassMap: Record<
   VideoSubtitleColorThemeId,
   { badge: string; panel: string; text: string; translation: string }
@@ -177,6 +217,15 @@ export function VideoEditor({ projectId, project, onRenderRequested }: VideoEdit
       state.scenes.slice(0, requiredPhotoCount).every((scene) => scene.durationMs > 0),
     lyrics: renderInput.lyricSegments.length > 0
   };
+  const qualityItems = getVideoQualityItems({
+    durationMs: renderInput.composition.durationMs,
+    imageCount: state.images.length,
+    lyricCount: renderInput.lyricSegments.length,
+    requiredPhotoCount,
+    roles: state.scenes.map((scene) => scene.role),
+    stepCompletion
+  });
+  const qualityScore = Math.round((qualityItems.filter((item) => item.done).length / qualityItems.length) * 100);
 
   useEffect(() => {
     const objectUrls = objectUrlsRef.current;
@@ -328,6 +377,19 @@ export function VideoEditor({ projectId, project, onRenderRequested }: VideoEdit
         />
       </section>
 
+      <VideoDirectorBoard
+        currentStep={currentStep}
+        durationMs={renderInput.composition.durationMs}
+        imageCount={state.images.length}
+        onApplySampleFlow={applySampleFlow}
+        onStepChange={setCurrentStep}
+        qualityItems={qualityItems}
+        qualityScore={qualityScore}
+        requiredPhotoCount={requiredPhotoCount}
+        sceneCount={state.scenes.length}
+        selectedPreset={selectedPreset}
+      />
+
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px] xl:items-start">
         <section className="min-w-0">
           {currentStep === "music" ? (
@@ -459,6 +521,157 @@ export function VideoEditor({ projectId, project, onRenderRequested }: VideoEdit
           />
         </aside>
       </div>
+    </div>
+  );
+}
+
+function VideoDirectorBoard({
+  currentStep,
+  durationMs,
+  imageCount,
+  onApplySampleFlow,
+  onStepChange,
+  qualityItems,
+  qualityScore,
+  requiredPhotoCount,
+  sceneCount,
+  selectedPreset
+}: {
+  currentStep: VideoStepId;
+  durationMs: number;
+  imageCount: number;
+  onApplySampleFlow: () => void;
+  onStepChange: (step: VideoStepId) => void;
+  qualityItems: VideoQualityItem[];
+  qualityScore: number;
+  requiredPhotoCount: number;
+  sceneCount: number;
+  selectedPreset?: (typeof videoMusicPresets)[number];
+}) {
+  const nextItem = qualityItems.find((item) => !item.done);
+
+  return (
+    <section className="overflow-hidden rounded-md border border-ink/10 bg-[linear-gradient(135deg,#fffaf5,#f7f0ea_54%,#eef3ef)] shadow-sm">
+      <div className="grid gap-0 lg:grid-cols-[minmax(0,1.12fr)_minmax(360px,0.88fr)]">
+        <div className="p-5 md:p-6">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-ink px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-white">
+              Version 2
+            </span>
+            <span className="rounded-full border border-rose/20 bg-white/75 px-3 py-1 text-xs font-medium text-rose">
+              하객 집중형 콘티 보드
+            </span>
+          </div>
+          <h3 className="mt-4 text-2xl font-semibold text-ink">사진을 올리는 화면이 아니라, 한 편의 흐름을 만드는 화면이에요.</h3>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-ink/62">
+            식전영상은 예쁜 사진을 붙이는 것보다 첫 장면, 두 사람의 표정, 디테일 컷, 가족/친구 컷, 마지막 인사가
+            자연스럽게 이어질 때 집중도가 올라가요. 아래 단계는 그 흐름을 기준으로 정리됩니다.
+          </p>
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            <VideoMetric label="필요 사진" value={`${imageCount}/${requiredPhotoCount}장`} tone={imageCount >= requiredPhotoCount ? "sage" : "rose"} />
+            <VideoMetric label="구간 수" value={`${sceneCount}개`} tone={sceneCount > 0 ? "sage" : "neutral"} />
+            <VideoMetric label="예상 길이" value={formatTime(durationMs)} tone={durationMs >= 45_000 ? "sage" : "neutral"} />
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-2">
+            {videoSteps.map((step) => (
+              <button
+                className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+                  currentStep === step.id
+                    ? "border-ink bg-ink text-white"
+                    : "border-ink/10 bg-white/70 text-ink hover:border-ink/25"
+                }`}
+                key={step.id}
+                onClick={() => onStepChange(step.id)}
+                type="button"
+              >
+                {step.label}
+              </button>
+            ))}
+            <button
+              className="rounded-full border border-sage/30 bg-sage/10 px-4 py-2 text-sm font-medium text-sage transition hover:border-sage/50"
+              onClick={onApplySampleFlow}
+              type="button"
+            >
+              샘플 콘티 적용
+            </button>
+          </div>
+        </div>
+
+        <div className="border-t border-ink/10 bg-white/72 p-5 md:p-6 lg:border-l lg:border-t-0">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose">Production Readiness</p>
+              <h4 className="mt-2 text-lg font-semibold text-ink">제작 완성도 {qualityScore}%</h4>
+            </div>
+            <div className="grid h-16 w-16 place-items-center rounded-full border border-ink/10 bg-[#fbfcfb] text-lg font-semibold text-ink">
+              {qualityScore}
+            </div>
+          </div>
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-porcelain">
+            <div className="h-full bg-rose transition-all" style={{ width: `${qualityScore}%` }} />
+          </div>
+
+          <div className="mt-4 grid gap-2">
+            {qualityItems.map((item) => (
+              <button
+                className="flex items-start justify-between gap-3 rounded-md border border-ink/10 bg-white px-3 py-3 text-left transition hover:border-ink/20"
+                key={item.label}
+                onClick={() => onStepChange(item.step)}
+                type="button"
+              >
+                <span>
+                  <span className="block text-sm font-medium text-ink">{item.label}</span>
+                  <span className="mt-1 block text-xs leading-5 text-ink/50">{item.help}</span>
+                </span>
+                <span
+                  className={`shrink-0 rounded-md px-2 py-1 text-xs font-medium ${
+                    item.done ? "bg-sage/10 text-sage" : "bg-rose/10 text-rose"
+                  }`}
+                >
+                  {item.done ? "완료" : "필요"}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-4 rounded-md border border-ink/10 bg-[#fcfbf9] p-3 text-sm leading-6 text-ink/60">
+            {selectedPreset ? (
+              <>
+                <span className="font-medium text-ink">{selectedPreset.artist} - {selectedPreset.title}</span> 흐름으로 준비 중이에요.
+                {nextItem ? ` 다음은 '${nextItem.label}'을 확인하면 좋아요.` : " 바로 영상 제작을 시작해도 좋아요."}
+              </>
+            ) : (
+              "먼저 노래 분위기를 고르면 필요한 사진 수와 자막 톤이 자동으로 맞춰져요."
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function VideoMetric({
+  label,
+  tone,
+  value
+}: {
+  label: string;
+  tone: "neutral" | "rose" | "sage";
+  value: string;
+}) {
+  const toneClass =
+    tone === "sage"
+      ? "border-sage/20 bg-sage/10 text-sage"
+      : tone === "rose"
+        ? "border-rose/20 bg-rose/10 text-rose"
+        : "border-ink/10 bg-white/70 text-ink";
+
+  return (
+    <div className={`rounded-md border px-4 py-3 ${toneClass}`}>
+      <p className="text-xs font-medium opacity-70">{label}</p>
+      <p className="mt-1 text-lg font-semibold">{value}</p>
     </div>
   );
 }
@@ -809,12 +1022,13 @@ function ArrangeStep({
                 />
               </button>
 
-              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_120px_150px_120px] lg:items-end">
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_116px_142px_142px_112px] lg:items-end">
                 <button className="text-left" onClick={() => onSceneSelect(scene.id)} type="button">
                   <p className="text-xs font-semibold text-rose">구간 {index + 1}</p>
                   <p className="mt-1 text-sm font-medium text-ink">
                     {formatTime(startMs)} - {formatTime(endMs)}
                   </p>
+                  <p className="mt-1 text-xs font-medium text-sage">{getSceneRoleLabel(scene.role)}</p>
                   <p className="mt-2 break-all text-xs text-ink/50">{image.fileName}</p>
                 </button>
 
@@ -846,6 +1060,25 @@ function ArrangeStep({
                   >
                     <option value="zoom-in">천천히 확대</option>
                     <option value="zoom-out">천천히 멀어짐</option>
+                  </select>
+                </label>
+
+                <label className="grid gap-2 text-sm font-medium text-ink">
+                  장면 역할
+                  <select
+                    className="rounded-md border border-ink/15 px-3 py-2"
+                    onChange={(event) =>
+                      onUpdateScene(scene.id, {
+                        role: event.target.value as VideoSceneRoleId
+                      })
+                    }
+                    value={scene.role}
+                  >
+                    {sceneRoleOptions.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.label}
+                      </option>
+                    ))}
                   </select>
                 </label>
 
@@ -1309,6 +1542,10 @@ function VideoSummaryPanel({
               {activeScene ? `${Math.round(activeScene.durationMs / 1000)}초` : "-"}
             </dd>
           </div>
+          <div className="flex items-center justify-between gap-3">
+            <dt className="text-ink/50">장면 역할</dt>
+            <dd className="font-medium text-ink">{activeScene ? getSceneRoleLabel(activeScene.role) : "-"}</dd>
+          </div>
         </dl>
 
         <div className="mt-5 rounded-md border border-ink/10 bg-[#fcfbf9] p-3">
@@ -1383,6 +1620,62 @@ function getSubtitlePositionLabel(position: VideoSubtitlePositionId) {
 
 function getSubtitleSizeLabel(size: VideoSubtitleSizeId) {
   return subtitleSizeOptions.find((option) => option.id === size)?.label ?? "기본";
+}
+
+function getSceneRoleLabel(role: VideoSceneRoleId) {
+  return sceneRoleOptions.find((option) => option.id === role)?.label ?? "장면";
+}
+
+function getVideoQualityItems({
+  durationMs,
+  imageCount,
+  lyricCount,
+  requiredPhotoCount,
+  roles,
+  stepCompletion
+}: {
+  durationMs: number;
+  imageCount: number;
+  lyricCount: number;
+  requiredPhotoCount: number;
+  roles: VideoSceneRoleId[];
+  stepCompletion: Record<VideoStepId, boolean>;
+}): VideoQualityItem[] {
+  const hasStoryShape = roles.includes("opening") && roles.includes("couple") && roles.includes("ending");
+  const hasHumanWarmth = roles.includes("family") || roles.includes("detail");
+
+  return [
+    {
+      done: stepCompletion.music,
+      help: "노래 분위기가 정해져야 사진 수, 자막 톤, 영상 호흡이 맞아요.",
+      label: "분위기 선택",
+      step: "music"
+    },
+    {
+      done: imageCount >= requiredPhotoCount,
+      help: `선택한 흐름에는 ${requiredPhotoCount}장의 사진이 필요해요.`,
+      label: "사진 수 충족",
+      step: "upload"
+    },
+    {
+      done: hasStoryShape,
+      help: "오프닝, 두 사람, 엔딩 컷이 있어야 처음부터 끝까지 이야기가 생겨요.",
+      label: "스토리 구조",
+      step: "arrange"
+    },
+    {
+      done: hasHumanWarmth,
+      help: "디테일 컷이나 가족/친구 컷을 섞으면 하객이 더 오래 집중해요.",
+      label: "감정 디테일",
+      step: "arrange"
+    },
+    {
+      done: lyricCount > 0 && durationMs >= 45_000,
+      help: "문구와 45초 이상의 흐름이 있으면 짧은 PPT처럼 보이지 않아요.",
+      label: "자막과 길이",
+      step: "lyrics"
+    }
+  ];
 }
 
 function getEstimatedProductionTimeLabel(imageCount: number) {

@@ -32,6 +32,7 @@ export const videoSubtitleStyleIds = ["kpop-bright", "kpop-deep", "pop-classic"]
 export const videoSubtitleColorThemeIds = ["peach-glow", "rose-gold", "ivory-light"] as const;
 export const videoSubtitlePositionIds = ["center", "bottom"] as const;
 export const videoSubtitleSizeIds = ["sm", "md", "lg"] as const;
+export const videoSceneRoleIds = ["opening", "couple", "detail", "family", "ending"] as const;
 
 export type VideoMusicPresetId = (typeof videoMusicPresetIds)[number];
 export type VideoMusicCategory = (typeof videoMusicCategories)[number];
@@ -39,6 +40,7 @@ export type VideoSubtitleStyleId = (typeof videoSubtitleStyleIds)[number];
 export type VideoSubtitleColorThemeId = (typeof videoSubtitleColorThemeIds)[number];
 export type VideoSubtitlePositionId = (typeof videoSubtitlePositionIds)[number];
 export type VideoSubtitleSizeId = (typeof videoSubtitleSizeIds)[number];
+export type VideoSceneRoleId = (typeof videoSceneRoleIds)[number];
 
 export type Subtitle = {
   start: number;
@@ -207,6 +209,7 @@ export const videoRenderInputSchema = z.object({
     z.object({
       id: z.string(),
       order: z.number().int().nonnegative(),
+      role: z.enum(videoSceneRoleIds).optional(),
       imageAssetId: z.string(),
       startMs: z.number().int().nonnegative(),
       durationMs: z.number().int().positive(),
@@ -318,6 +321,7 @@ export const defaultVideoRenderInput: VideoRenderInput = {
     {
       id: "sample-scene-1",
       order: 0,
+      role: "opening",
       imageAssetId: "sample-image-1",
       startMs: 0,
       durationMs: 5000,
@@ -334,6 +338,7 @@ export const defaultVideoRenderInput: VideoRenderInput = {
     {
       id: "sample-scene-2",
       order: 1,
+      role: "couple",
       imageAssetId: "sample-image-2",
       startMs: 5000,
       durationMs: 5000,
@@ -350,6 +355,7 @@ export const defaultVideoRenderInput: VideoRenderInput = {
     {
       id: "sample-scene-3",
       order: 2,
+      role: "ending",
       imageAssetId: "sample-image-3",
       startMs: 10000,
       durationMs: 5000,

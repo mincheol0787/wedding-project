@@ -9,6 +9,7 @@ import {
 } from "remotion";
 import type {
   VideoRenderInput,
+  VideoSceneRoleId,
   VideoSubtitleColorThemeId,
   VideoSubtitleSizeId,
   VideoSubtitleStyleId
@@ -148,7 +149,8 @@ function PhotoScene({
     extrapolateRight: "clamp"
   });
   const layout = getSceneLayout(sceneIndex);
-  const title = getSceneTitle(sceneIndex, totalScenes);
+  const title = getSceneTitle(sceneIndex, totalScenes, scene.role);
+  const roleLabel = getSceneRoleKicker(scene.role, sceneIndex);
   const names = getCoupleNames(input);
 
   return (
@@ -190,7 +192,13 @@ function PhotoScene({
           }}
         >
           {layout.copySide === "left" ? (
-            <SceneCopy accent={subtitleThemeMap[input.subtitleAppearance.colorTheme].accent} names={names} sceneIndex={sceneIndex} title={title} />
+            <SceneCopy
+              accent={subtitleThemeMap[input.subtitleAppearance.colorTheme].accent}
+              names={names}
+              roleLabel={roleLabel}
+              sceneIndex={sceneIndex}
+              title={title}
+            />
           ) : null}
 
           <div
@@ -236,7 +244,13 @@ function PhotoScene({
           </div>
 
           {layout.copySide === "right" ? (
-            <SceneCopy accent={subtitleThemeMap[input.subtitleAppearance.colorTheme].accent} names={names} sceneIndex={sceneIndex} title={title} />
+            <SceneCopy
+              accent={subtitleThemeMap[input.subtitleAppearance.colorTheme].accent}
+              names={names}
+              roleLabel={roleLabel}
+              sceneIndex={sceneIndex}
+              title={title}
+            />
           ) : null}
         </div>
       </AbsoluteFill>
@@ -247,11 +261,13 @@ function PhotoScene({
 function SceneCopy({
   accent,
   names,
+  roleLabel,
   sceneIndex,
   title
 }: {
   accent: string;
   names: string;
+  roleLabel: string;
   sceneIndex: number;
   title: string;
 }) {
@@ -277,7 +293,7 @@ function SceneCopy({
           marginBottom: 28
         }}
       >
-        {String(sceneIndex + 1).padStart(2, "0")}
+        {String(sceneIndex + 1).padStart(2, "0")} / {roleLabel}
       </div>
       <div
         style={{
@@ -665,7 +681,27 @@ function getSceneLayout(index: number) {
   return layouts[index % layouts.length];
 }
 
-function getSceneTitle(index: number, totalScenes: number) {
+function getSceneTitle(index: number, totalScenes: number, role?: VideoSceneRoleId) {
+  if (role === "opening") {
+    return "First chapter";
+  }
+
+  if (role === "couple") {
+    return index % 2 === 0 ? "The way we smiled" : "Together, slowly";
+  }
+
+  if (role === "detail") {
+    return "Little moments";
+  }
+
+  if (role === "family") {
+    return "Warmest people";
+  }
+
+  if (role === "ending") {
+    return "Our beginning";
+  }
+
   if (index === 0) {
     return "First chapter";
   }
@@ -677,6 +713,23 @@ function getSceneTitle(index: number, totalScenes: number) {
   const titles = ["The way we smiled", "Warmest season", "Every little promise", "Together, slowly"];
 
   return titles[(index - 1) % titles.length];
+}
+
+function getSceneRoleKicker(role: VideoSceneRoleId | undefined, index: number) {
+  switch (role) {
+    case "opening":
+      return "Opening";
+    case "couple":
+      return "Couple";
+    case "detail":
+      return "Detail";
+    case "family":
+      return "Family";
+    case "ending":
+      return "Finale";
+    default:
+      return `Scene ${index + 1}`;
+  }
 }
 
 function getCoupleNames(input: VideoRenderInput) {

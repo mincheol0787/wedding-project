@@ -4,6 +4,7 @@ import {
   type VideoMusicPresetId,
   type VideoSubtitleColorThemeId,
   type VideoSubtitlePositionId,
+  type VideoSceneRoleId,
   type VideoSubtitleSizeId,
   type VideoRenderInput,
   type VideoTemplateId
@@ -33,6 +34,7 @@ export type EditorScene = {
   imageAssetId: string;
   durationMs: number;
   motion: "zoom-in" | "zoom-out";
+  role: VideoSceneRoleId;
 };
 
 export type EditorLyricSegment = {
@@ -179,7 +181,8 @@ export function videoEditorReducer(
         id: createId("scene"),
         imageAssetId: image.id,
         durationMs: 5000,
-        motion: (state.scenes.length + index) % 2 === 0 ? "zoom-in" : "zoom-out"
+        motion: (state.scenes.length + index) % 2 === 0 ? "zoom-in" : "zoom-out",
+        role: getDefaultSceneRole(state.scenes.length + index)
       })) satisfies EditorScene[];
 
       return {
@@ -331,7 +334,8 @@ export function createSpringSampleVideoState(
       id: `spring-scene-${index + 1}`,
       imageAssetId: image.id,
       durationMs: 6000,
-      motion: index % 2 === 0 ? "zoom-in" : "zoom-out"
+      motion: index % 2 === 0 ? "zoom-in" : "zoom-out",
+      role: getDefaultSceneRole(index, images.length)
     })),
     lyricSegments: createLyricSegmentsFromPreset(presetId),
     subtitleAppearance: getDefaultSubtitleAppearance(preset?.subtitleStyle),
@@ -354,6 +358,7 @@ export function buildVideoRenderInput(state: VideoEditorState): VideoRenderInput
     return {
       id: scene.id,
       order,
+      role: scene.role,
       imageAssetId: scene.imageAssetId,
       startMs,
       durationMs: scene.durationMs,
@@ -410,6 +415,20 @@ export function buildVideoRenderInput(state: VideoEditorState): VideoRenderInput
       .filter((segment) => segment.text.trim().length > 0 && segment.endMs > segment.startMs),
     subtitleAppearance: state.subtitleAppearance
   };
+}
+
+export function getDefaultSceneRole(index: number, totalScenes = 10): VideoSceneRoleId {
+  if (index === 0) {
+    return "opening";
+  }
+
+  if (index >= totalScenes - 1) {
+    return "ending";
+  }
+
+  const roles: VideoSceneRoleId[] = ["couple", "detail", "couple", "family", "detail"];
+
+  return roles[(index - 1) % roles.length];
 }
 
 function applyMusicPreset(
